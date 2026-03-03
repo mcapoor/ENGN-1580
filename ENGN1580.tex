@@ -24,7 +24,7 @@
 \usepackage{circuitikz}
 \usepackage{multirow}
 \pgfplotsset{compat=1.18}
-\usetikzlibrary{intersections, decorations.markings, decorations.pathmorphing}
+\usetikzlibrary{intersections, decorations.markings, decorations.pathmorphing, patterns}
  \usepgfplotslibrary{fillbetween}
 \tikzset{
     marking along/.style n args={2}{
@@ -94,7 +94,7 @@
 \renewcommand{\bar}[1]{\overline{#1}}
 \newcommand{\overcirc}[1]{\overset{\circ}{#1}}
 \newcommand{\diam}{\text{diam }}
-\newcommand{\iid}{\overset{	ext{iid}}{\sim}}
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
 
 \renewcommand{\Re}{\text{Re}\,}
 \renewcommand{\Im}{\text{Im}\,}
@@ -107,6 +107,7 @@
 \newcommand{\sign}{\text{sign}\,}
 
 \newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
+
 
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable, skins}
@@ -692,6 +693,13 @@ leading to the property:
     \textbf{Exercise:} The Fourier transform of $x(t)$ is $X(f)$. Prove that the Fourier transform of $x(t - t_0)$ is $e^{-j\; 2\pi ft_0} X(f)$. 
 \end{exercise}
 
+\begin{align*}
+    \F(x(t- t_0)) &= \int x(t - t_0) e^{-j\; 2\pi ft}\; dt\\ 
+    &= \int x(u) e^{-j\; 2\pi f(u + t_0)}\; du\\ 
+    &= e^{-j\; 2\pi ft_0} \int x(u) e^{-j\; 2\pi fu}\; du\\
+    &= e^{-j\; 2\pi ft_0} X(f)
+\end{align*}
+
 \begin{exercise}
     \textbf{Exercise:} The energy in a signal $x(t)$ is defined as 
     \[E = \int_{-\infty}^{\infty} \abs{x(t)}^2\; dt\]
@@ -702,9 +710,32 @@ leading to the property:
     \[\int_{-\infty}^{\infty} e^{j\; 2\pi vt}\; dt = \delta(v)\]
 \end{exercise}
 
+\begin{align*}  
+    \abs{x(t)}^2 &= x(t) x^*(t) \\
+    x(t) &= \int X(f) e^{j\; 2\pi ft}\; df\\
+    x^*(t) &= \int X^*(f) e^{-j\; 2\pi ft}\; df\\
+    E &= \int \abs{x(t)}^2\; dt\\
+    &= \int \left(\int X(f) e^{j\; 2\pi ft}\; df\right) \left(\int X^*(f') e^{-j\; 2\pi f't}\; df'\right) dt\\
+    &= \int \int \int X(f) X^*(f') e^{j\; 2\pi t(f - f')}\; df\, df'\, dt\\
+    &= \int \int X(f) X^*(f') \left(\int e^{j\; 2\pi t(f - f')}\; dt\right) df\, df'\\
+    &= \int \int X(f) X^*(f') \delta(f - f')\; df\, df'\\
+    &= \int X(f) X^*(f)\; df\\
+    &= \int \abs{X(f)}^2\; df
+\end{align*}
+
 \begin{exercise}
     \textbf{Exercise:} A signal $x(t)$ of finite energy is applied to a square-law device whose output is defined by $y(t) = x^2(t)$. The spectrum $X(f)$ of $x(t)$ is limited to the frequency interval $-W \leq f \leq W$. Show that the spectrum, $Y(f)$ of $y(t)$ is limited to the frequency interval $-2W \leq f \leq 2W$.
 \end{exercise}
+
+\begin{align*}
+    y(t) &= x^2(t)\\ 
+    \F(y(t)) &= Y(f) = \F(x(t) x(t))\\ 
+    &= X(f) \star X(f) \\ 
+    &= \int_{-\infty}^{\infty} X(\tau) X(f - \tau)\; d\tau\\ 
+    &= \int_{-W}^W X(\tau) X(f - \tau)\; d\tau \qquad (\text{since } X(f) = 0 \text{ for } \abs f > W)\\
+\end{align*}
+
+At the limit $\tau = -W$, $-W \leq f \leq W \implies f \in [0, 2W]$. A symmetric argument holds for $\tau = W$ so $Y(f) = 0$ for $\abs f > 2W$.
 
 \begin{exercise}
     \textbf{Exercise:} Show that the overall transfer function $H(s)$ for the feedback system below is given by 
@@ -714,6 +745,95 @@ leading to the property:
         \includegraphics[width=0.5\textwidth]{Images/feedback_system.png}
     \end{center}
 \end{exercise}
+
+Let $W(s)$ be the Laplace transform of the input to $F(s)$. 
+
+Then 
+\begin{align*}
+    W(s) &= X(S) + G(s) Y(s)\\
+    Y(s) &= F(s) W(s)\\
+    &= F(s) \left[X(s) + G(s) Y(s)\right]\\
+    H(s) &= \frac{Y(s)}{X(s)}\\ 
+    &= \frac{F(s)\left[X(s) + G(s) Y(s)\right] }{X(s)}\\ 
+    &= F(s) \left[1 + G(s) H(s)\right]\\ 
+\end{align*}
+so 
+\begin{align*}
+    H(s) - F(s) G(s) H(s) &= F(s)\\
+    H(s) \left[1 - F(s) G(s)\right] &= F(s)\\
+    \implies H(s) &= \frac{F(s)}{1 - F(s) G(s)}
+\end{align*}
+
+\section{Quizlette 1}
+
+\begin{exercise}
+    \textbf{Exercise:} Sketch $s_1(t) = \delta(t - a)$ and $s_2(t) = \delta(a - t)$. What are the respective outputs if $s_1(t)$ and $s_2(t)$ are applied to the input of a linear time invariant system with impulse response $h(t)$?
+\end{exercise}
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (3, 0); 
+    \draw (0.5, 0) -- ++(0, 2); 
+    \draw[blue, ->] (2, 0) -- ++(0, 1) node[above right] {$\delta(t- a) = \delta (a - t)$}; 
+    \node[below] at (2, 0) {$a$};
+\end{tikzpicture}
+\end{center}
+
+\emph{Recall:} the impulse response satisfies 
+\begin{align*}
+    \int h(\tau) \delta(t - a - \tau)\; d\tau &= h(t - a)\\ 
+    \int h(\tau) \delta(a - t - \tau)\; d\tau &= \int h(\tau) \delta(t - a - \tau)\; d\tau \\ 
+    &= h(t - a)
+\end{align*}
+
+\begin{exercise}
+    \textbf{Exercise:} the impulse response of a system is $e^{-t}u(t)$. What is the system output if the input is $e^{-2t}u(t)$? Show your work
+\end{exercise}
+
+The output of a linear system if the convolution of the input with the impulse response. 
+
+\begin{align*}
+    y(t) &= e^{-t}u(t) \star e^{-2t}u(t)\\ 
+    &= \int e^{-\tau}u(\tau) \cdot e^{-2(t- \tau)} u(t - \tau)\; d\tau \\ 
+    &= \int_0^t e^{-\tau} e^{-2(t - \tau)}\; d\tau \\ 
+    &= e^{-2t} \int_0^t e^{\tau}\; d\tau \\
+    &= e^{-t} - e^{-2t} 
+\end{align*}
+
+\begin{exercise}
+    \textbf{Exercise:} Suppose
+    \[x(t) = \left(\frac{\sin 2\pi t}{\pi t}\right)^2 \]
+    What is $X(f)$?
+\end{exercise}
+
+We know that 
+\[R = \F\left(\frac{\sin 2\pi t}{\pi t}\right) = \frac{1}{2j\, \pi t} [\delta (f - 1) + \delta(f + 1)]\]
+so 
+\begin{align*}
+    \F(R^2) &= R\star R\\ 
+    &= \int R(\tau) R(f - \tau)\; d\tau\\
+    &= \int \frac{1}{2j\, \pi \tau} [\delta(\tau - 1) + \delta(\tau + 1)] \cdot \frac{1}{2j\, \pi (f - \tau)} [\delta(f - \tau - 1) + \delta(f - \tau + 1)]\; d\tau\\
+    &= -\frac{1}{(2\pi)^2} \int \frac{1}{\tau (f - \tau)} [\delta(\tau - 1) + \delta(\tau + 1)] [\delta(f - \tau - 1) + \delta(f - \tau + 1)]\; d\tau
+\end{align*}
+
+
+\begin{exercise}
+    \textbf{Exercise:} Suppose $y(t) = x(t) \cos 2\pi f_0 t$. Is the system $y(t) = L[x(t)]$ linear? Is it time-invariant? 
+\end{exercise}
+
+\begin{align*}
+    L[a_1 x_1(t) + a_2 x_2(t)] &= (a_1 x_1(t) + a_2 x_2(t)) \cos 2\pi f_0 t\\ 
+    &= a_1 x_1(t) \cos 2\pi f_0 t + a_2 x_2(t) \cos 2\pi f_0 t\\
+    &= a_1 L[x_1(t)] + a_2 L[x_2(t)]
+\end{align*}
+So linear. 
+
+Now, time-invariance:
+\begin{align*}
+    L[x(t - t_0)] &= x(t - t_0) \cos 2\pi f_0 t\\ 
+    &\neq y(t - t_0) = x(t - t_0) \cos 2\pi f_0 (t - t_0)
+\end{align*}
+so not time-invariant.
 \chapter{Modulation}
 
 Consider a simple modulation and demodulation scheme:
@@ -1163,105 +1283,56 @@ Recall in our demodulation step we multiplied by $\cos 2\pi f_c t$ again. What i
 
     In particular, this means we can send less information by sending only the positive frequencies or only the negative frequencies and reconstructing the other half using the even/odd properties.
 
-    Consider:
-    \begin{center}
-    \begin{tikzpicture}
-        \draw (0, 0) -- (7, 0);
-
-        \draw[fill, blue, fill opacity=0.1] (1, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
-        \draw[blue]  (2, 1) to[bend left] ++(1, -1);
-        \node[below] at (2, 0) {$-f_c$};
-
-
-        \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
-        \draw[blue]  (5, 1) to[bend left] ++(1, -1);
-        \node[below] at (5, 0) {$f_c$};
-
-
-    \end{tikzpicture}
-    \end{center}
-
-    We filter, 
-
-      \begin{center}
-    \begin{tikzpicture}
-        \draw (0, 0) -- (7, 0);
-
-        \draw[blue]  (2, 1) to[bend left] ++(1, -1);
-        \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
-
-        \draw[dashed, red] (1.8, 0) -- ++(0, 1.2) -- node[midway, above] {LPF} ++(3.4, 0) -- ++(0, -1.2);
-    \end{tikzpicture}
-    \end{center}
-
-    Then modulate by $\cos 2\pi f_c t$: 
-    
-    \begin{center}
-    \begin{tikzpicture}
-        \draw (0, 0) -- (10, 0);
-        \draw (5, 0) -- ++(0, 2);
-
-        \draw[blue] (1, 0) -- (1, 1) to[bend left] ++(1, -1); 
+    \begin{enumerate}
+        \item Modulate $m(t)$ by $\cos 2\pi f_c t$ to shift the spectrum to be centered at $\pm f_c$.
         
-        \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
-        \draw[red] (5, 0) -- ++(0, 1) to[bend left] ++(1, -1); 
-        \draw[fill, red, fill opacity=0.1] (7, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+        \begin{center}
+        \begin{tikzpicture}
+            \draw (0, 0) -- (7, 0);
 
-        \node[below] at (1, 0) {$-2f_c$};
-        \node[below] at (8, 0) {$2f_c$};
-    \end{tikzpicture}
-    \end{center}
+            \draw[fill, blue, fill opacity=0.1] (1, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+            \draw[blue]  (2, 1) to[bend left] ++(1, -1);
+            \node[below] at (2, 0) {$-f_c$};
 
-    and just like that, we have recovered the full signal using half the bandwidth!
 
-    In practice, we can use two signals (an upper and lower sideband): 
+            \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+            \draw[blue]  (5, 1) to[bend left] ++(1, -1);
+            \node[below] at (5, 0) {$f_c$};
+        \end{tikzpicture}
+        \end{center}
 
-    \begin{center}
-    \begin{tikzpicture}
-        \node at (0, 0) [red] {$m_1(t)$};
-        \draw[->, shorten >= 5pt, shorten <= 5pt] (0.5, 0) --  ++(1, 0) node[right, draw, rectangle] {\begin{tabular}{c}
-            U\\ 
-            SSB 
-        \end{tabular}};
-        \draw (2.3, 0.8) -- ++(0, 1) node {\scalebox{2}{\rotatebox{180}{$\triangle$}}}; 
+        \item Filter 
+        \begin{center}
+        \begin{tikzpicture}
+                \draw (0, 0) -- (7, 0);
 
-        \node at (0, -4) [blue] {$m_2(t)$};
-        \draw[->, shorten >= 5pt, shorten <= 5pt] (0.5, -4) --  ++(1, 0) node[right, draw, rectangle] {\begin{tabular}{c}
-            L\\ 
-            SSB 
-        \end{tabular}};
-        \draw (2.3, -3.2) -- ++(0, 1) node {\scalebox{2}{\rotatebox{180}{$\triangle$}}}; 
+                \draw[blue]  (2, 1) to[bend left] ++(1, -1);
+                \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
 
-        \draw (-1, 1) -- ++(2, 0);
-        \draw (0, 1) -- ++(0, 1);
-        \draw[red, decoration=coil, decorate] (-0.7, 1.5) -- ++(1.4, 0);
-        \draw[red] (-0.7, 1) -- ++(0, 0.5);
-        \draw[red] (0.7, 1) -- ++(0, 0.5);
+                \draw[dashed, red] (1.8, 0) -- ++(0, 1.2) -- node[midway, above] {LPF} ++(3.4, 0) -- ++(0, -1.2);
+            \end{tikzpicture}
+            \end{center}
 
-        \draw (-1, -3) -- ++(2, 0);
-        \draw (0, -3) -- ++(0, 1);
-        \draw[blue] (-0.5, -3) arc (180:0:0.5 and 0.8);
+        \item Transmit
+        \item Demodulate by multiplying by $\cos 2\pi f_c t$ again.
+        \begin{center}
+        \begin{tikzpicture}
+            \draw (0, 0) -- (10, 0);
+            \draw (5, 0) -- ++(0, 2);
 
-        \draw (4, 0) -- ++(3, 0);
-        \draw (5.5, 0) -- ++(0, 1);
-        \draw[red, decoration=coil, decorate] (4.1, 0.5) -- (4.8, 0.5);
-        \draw[red] (4.1, 0.5) -- ++(0, -0.5);
-        \draw[red] (4.8, 0.5) -- ++(0, -0.5) node[below, black] {$-f_c$} ;
-        
-        \draw[red, decoration=coil, decorate] (6.2, 0.5) -- (6.9, 0.5);
-        \draw[red] (6.2, 0.5) -- ++(0, -0.5) node[below, black] {$f_c$};
-        \draw[red] (6.9, 0.5) -- ++(0, -0.5) ;    
-        \draw[red] (-0.7, 1) -- ++(0, 0.5);
-        \draw[red] (0.7, 1) -- ++(0, 0.5);
+            \draw[blue] (1, 0) -- (1, 1) to[bend left] ++(1, -1); 
+            
+            \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+            \draw[red] (5, 0) -- ++(0, 1) to[bend left] ++(1, -1); 
+            \draw[fill, red, fill opacity=0.1] (7, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
 
-        \draw (4, -4) -- ++(3, 0);
-        \draw (5.5, -4) -- ++(0, 1);
-        \draw[blue] (4.8, -4) node[black, below] {$-f_c$} -- ++(0, 0.5) to[bend left] ++(0.5, -0.5);
-        \draw[blue] (6.2, -4) node[black, below] {$-f_c$} -- ++(0, 0.5) to[bend right] ++(-0.5, -0.5);
-    \end{tikzpicture}
-    \end{center}
+            \node[below] at (1, 0) {$-2f_c$};
+            \node[below] at (8, 0) {$2f_c$};
+        \end{tikzpicture}
+        \end{center}
 
-    
+        \item LPF again to recover the full signal using half the bandwidth! 
+    \end{enumerate}
 
     \tbf{Frequency Division Multiplexing:}
 
@@ -1358,7 +1429,7 @@ Recall in our demodulation step we multiplied by $\cos 2\pi f_c t$ again. What i
    \end{tikzpicture}
    \end{center}
 
-   Though we still want to recover the envelope (all the information is in the amplitude of the envelope).
+   so we can recover the envelope (all the information is in the amplitude of the envelope), for example using this circuit:
 
    \begin{center}
     \begin{circuitikz}[american voltages]
@@ -1372,6 +1443,7 @@ Recall in our demodulation step we multiplied by $\cos 2\pi f_c t$ again. What i
  
     \end{circuitikz}
    \end{center}
+
 
 \tbf{Motivating FM:}
 \[r(t) = \sin\left(2\pi f_c t + \int_{-\infty}^t m(\tau) d\tau \right) \]
@@ -1390,5 +1462,972 @@ Now let's try differentiating:
     \frac{d}{dt} r(t) &= (2\pi f_c + m(t)) \cos \left(2\pi f_c t + \int_{-\infty}^t m(\tau)\; d\tau\right) 
 \end{align*}
 
-\end{document}
+\section{Feb 5}
+\subsection{AM Review}
 
+\tbf{Coherent Modulation:} Modulate and demodulate by multiplying with the same carrier signal (traditionally $\cos 2\pi f_c t$). Recover $\alpha m(t)$ after low-pass filtering.
+
+\tbf{Large Carrier (LC) Modulation:} Transmit the message $(m(t) + A) \cos 2\pi f_c t$ with $A \geq \max_t \abs{m(t)}$ (though this is a bit overkill to ensure $m(t) + A \geq 0$). Receive with an envelope detector, LPF, and very low HPF (to remove the DC offset $A$).
+
+Why do we need to make sure the message is always positive? To an envelope detector, there is no difference between $m(t) + A$ and $\abs{m(t) + A}$. If $m(t) + A$ goes negative, the envelope detector will just flip it positive and distort the message.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$x$},
+    ylabel={$y$},
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=6,
+    view = {0}{90}
+]
+    \addplot[blue, domain=0:6] {cos(100*x)} node[right] {$m_1(t)$};
+    \addplot[red, domain=0:6] {abs(cos(100*x))} node[right] {$m_2(t)$};
+\end{axis}
+
+\end{tikzpicture}
+\end{center}
+
+What does the transmitted signal look like in the frequency domain? 
+
+    \begin{center}
+    \begin{tikzpicture}
+        \draw (0, 0) -- (7, 0);
+
+        \draw[fill, blue, fill opacity=0.1] (1, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+        \draw[blue]  (2, 1) to[bend left] ++(1, -1);
+        \node[below] at (2, 0) {$-f_c$};
+
+
+        \draw[fill, blue, fill opacity=0.1] (4, 0) to[bend left] ++(1, 1) -- ++(0, -1) -- ++(-1, 0) -- cycle;
+        \draw[blue]  (5, 1) to[bend left] ++(1, -1);
+        \node[below] at (5, 0) {$f_c$};
+
+        \draw[->, red] (2, 0) -- ++(0, 2) node[above] {$A$};
+        \draw[->, red] (5, 0) -- ++(0, 2) node[above] {$A$};
+
+
+    \end{tikzpicture}
+    \end{center}
+
+
+Exactly the same as coherent AM but with impulses added at the message frequencies. 
+
+\tbf{Single Sideband (SSB) Modulation:} can be coherent or incoherent. Before transmitting apply an LPF so we use half the bandwidth. This takes advantage of the fact that $M(-f) = M^*(f)$. For lower sideband, we can invert the initial filter and pack a second message into the other (filtered) part of the spectrum. 
+
+
+\begin{center}
+\begin{tikzpicture}
+    \node at (0, 0) [red] {$m_1(t)$};
+    \draw[->, shorten >= 5pt, shorten <= 5pt] (0.5, 0) --  ++(1, 0) node[right, draw, rectangle] {\begin{tabular}{c}
+        U\\ 
+        SSB 
+    \end{tabular}};
+    \draw (2.3, 0.8) -- ++(0, 1) node {\scalebox{2}{\rotatebox{180}{$\triangle$}}}; 
+
+    \node at (0, -4) [blue] {$m_2(t)$};
+    \draw[->, shorten >= 5pt, shorten <= 5pt] (0.5, -4) --  ++(1, 0) node[right, draw, rectangle] {\begin{tabular}{c}
+        L\\ 
+        SSB 
+    \end{tabular}};
+    \draw (2.3, -3.2) -- ++(0, 1) node {\scalebox{2}{\rotatebox{180}{$\triangle$}}}; 
+
+    \draw (-1, 1) -- ++(2, 0);
+    \draw (0, 1) -- ++(0, 1);
+    \draw[red, decoration=coil, decorate] (-0.7, 1.5) -- ++(1.4, 0);
+    \draw[red] (-0.7, 1) -- ++(0, 0.5);
+    \draw[red] (0.7, 1) -- ++(0, 0.5);
+
+    \draw (-1, -3) -- ++(2, 0);
+    \draw (0, -3) -- ++(0, 1);
+    \draw[blue] (-0.5, -3) arc (180:0:0.5 and 0.8);
+
+    \draw (4, 0) -- ++(3, 0);
+    \draw (5.5, 0) -- ++(0, 1);
+    \draw[red, decoration=coil, decorate] (4.1, 0.5) -- (4.8, 0.5);
+    \draw[red] (4.1, 0.5) -- ++(0, -0.5);
+    \draw[red] (4.8, 0.5) -- ++(0, -0.5) node[below, black] {$-f_c$} ;
+    
+    \draw[red, decoration=coil, decorate] (6.2, 0.5) -- (6.9, 0.5);
+    \draw[red] (6.2, 0.5) -- ++(0, -0.5) node[below, black] {$f_c$};
+    \draw[red] (6.9, 0.5) -- ++(0, -0.5) ;    
+    \draw[red] (-0.7, 1) -- ++(0, 0.5);
+    \draw[red] (0.7, 1) -- ++(0, 0.5);
+
+    \draw (4, -4) -- ++(3, 0);
+    \draw (5.5, -4) -- ++(0, 1);
+    \draw[blue] (4.8, -4) node[black, below] {$-f_c$} -- ++(0, 0.5) to[bend left] ++(0.5, -0.5);
+    \draw[blue] (6.2, -4) node[black, below] {$-f_c$} -- ++(0, 0.5) to[bend right] ++(-0.5, -0.5);
+\end{tikzpicture}
+\end{center}
+
+\emph{What happens if we modulated with a square wave instead of a cosine wave?} The square wave can be expressed as a Fourier series of cosines at odd harmonics of the fundamental frequency. In the frequency domain, this looks just like the coherent AM case but with copies of the message at all the harmonics (impulses at $f_c, 3f_c, 5f_c, \ldots$).
+
+\subsection{FM} 
+
+Let 
+\[r(t) = \sin (\Theta(t)) = \sin\left(2\pi f_c t + \beta\int_{-\infty}^t m(\tau) \; d\tau\right)\]
+
+This is a constant amplitude signal with changing frequency. 
+
+\tbf{Instantaneous Frequency:}
+\[\frac{d\Theta(t)}{dt} = \omega(t) \]
+
+What happens if we differentiate $r(t)$?
+\[    \frac{dr}{dt} = (2\pi f_c + \beta m(t)) \cos\left(2\pi f_c t + \beta\int_{-\infty}^t m(\tau)\; d\tau\right) 
+\] 
+
+Since $f_c \gg m(t)$ and we assume $\beta$ is relatively small (hence $\beta \int_{-\infty}^t m(\tau)\; d\tau \lll 1$) we can just throw this into an envelope detector and HPF (get rid of the DC term) to recover $\beta m(t)$ approximately.
+
+\begin{center}
+\begin{tikzpicture}
+    \node at (0, 0) {$r(t)$}; 
+    \draw[->] (0.5, 0) -- ++(1, 0) node[right, draw, rectangle] (A) {$d/dt$};
+    \draw[->] (A) -- ++(1.5, 0) node[right, draw, rectangle] (B) {\begin{tabular}{c}
+        Envelope \\ 
+        Detector
+    \end{tabular}}; 
+    \draw[->] (B) -- ++(2, 0) node[right, draw, rectangle] (C) {HPF};
+    \draw[->] (C) -- ++(1.5, 0) node[right] {$\beta m(t)$};
+\end{tikzpicture}
+\end{center}
+
+In particular, 
+\begin{align*}
+    r(t) &= \sin (2\pi f_c t) \cos (\beta \Theta(t)) + \cos (2\pi f_c t) \sin (\beta \Theta(t))\\ 
+    &\approx (\cos 2\pi f_c t) \left(\beta \int_{-\infty}^t m(\tau)\; d\tau\right) + \sin 2\pi f_c t \qquad (\sin x = x)
+\end{align*}
+
+\section{Feb 10 - Quiz 1 Review}
+
+\emph{What is a linear system? 
+}\[L[au + bv] = aL[u] + bL[v], \quad a, b \in \R\]
+
+\emph{Is $y = ax + b$ ($a, b \neq 0$) linear? }
+No. It doesn't satisfy scaling: 
+\[y = a(cx) + b \neq c(ax + b)\]
+
+\emph{What is a linear time-invariant (LTI) system?
+}
+\[y(t) = L[x(t)] \implies y(t - t_0) = L{x(t - t_0)}\]
+
+\emph{What is a delta function?}
+\begin{enumerate}
+    \item $\int \delta(t)\; dt = 1$
+    \item $\delta(t) = 0$ for $t \neq 0$
+    \item $\int f(t) \delta(t - t_0)\; dt = f(t_0)$ (sifting)
+\end{enumerate}
+
+\tbf{Transfer function:} $H(f) = \F(h(t))$ where $h(t)$ is the \tbf{impulse response} of the system.
+
+\begin{center}
+\begin{tikzpicture}
+    \node at (0, 0) {\begin{tabular}{c}
+        $\delta(t)$\\ 
+        $\delta(t - \tau)$ 
+    \end{tabular}};
+    \draw (1, 0) -- ++(0.5, 0) node[right, draw, rectangle] (A) {$h(t)$};
+    \draw (A) -- ++(1, 0) node[right] {\begin{tabular}{c}
+        $y(t)$\\ 
+        $y(t - \tau)$
+    \end{tabular}};
+\end{tikzpicture}
+\end{center}
+where the box represents a \tbf{convolution}:
+\[y(t) = (x * h)(t) = \int_{-\infty}^\infty x(\tau) h(t - \tau) \; d\tau
+\]
+(in fact, in the frequency domain, this operation is defined by $Y(f) = X(f) H(f)$)
+
+\emph{Fourier Transform:} 
+\[\F[x(t)] = \int x(t)e^{-j\; 2\pi ft} \; dt = X(f)\]
+
+\emph{Inverse Fourier:}
+\[\F^{-1}[X(f)] = \int X(f) e^{j \; 2\pi ft} \; df = x(t)\]
+
+\emph{Standard Fourier pairs:}
+\begin{enumerate}
+    \item $\F[\delta(t)] = 1$
+    \item $\F[e^{-j\; 2\pi f_0 t}] = \delta(f + f_0)$
+    \item $\F[\delta(t- t_0)] = e^{-j\; 2\pi f t_0}$
+    \item $\F[\cos 2\pi f_0 t] = \frac{1}{2}[\delta(f + f_0) + \delta(f - f_0)]$
+    \item $\F[\sin 2\pi f_0 t] = \frac{1}{2j}[\delta(f + f_0) - \delta(f - f_0)]$
+    \item $\F[\ind_{x\in [-T/2, T/2]}] = \text{sinc}(2\pi Tf)$
+\end{enumerate}
+
+\emph{Fourier Properties:}
+\begin{enumerate}
+    \item $\F[x(t - t_0)] = e^{j\; 2\pi f t_0} X(f)$
+    \item $\F[ax(t)] = aX(f/a)$
+    \item $\F[x'(t)] = X(f) \cdot j\; 2\pi f$
+    \item $\F[\int_{-\infty}^t x(u)\; du] = \frac{X(f)}{j\; 2\pi f} + \frac{X(0)}{2} \delta(f)$
+    \item $\int_{-\infty}^{\infty} \abs{x(t)}^2 = \int_{-\infty}^{\infty} \abs{X(f)}^2$ (Parseval's)
+    \item $\F[X(t)] = x(-f)$  
+\end{enumerate}
+
+\emph{Useful tricks:}
+\begin{enumerate}
+    \item $\abs{X(f)}^2 = X(f) X^*(f) = X(f) X(-f)$
+    \item $\cos(2\pi f t) = \frac{e^{j\; 2\pi f t} + e^{-j\; 2\pi f t}}{2}$
+    \item $\sin(2\pi f t) = \frac{e^{j\; 2\pi f t} - e^{-j\; 2\pi f t}}{2j}$
+    \item Fourier of odd function is purely imaginary, Fourier of even function is purely real.
+    \item $\delta$ is an even function: $\delta(-t) = \delta(t)$
+    \item $u(t) = \ind_{t \geq 0}(t)$ 
+    \item $\sin(x + y) = \sin x \cos y + \cos x \sin y$
+    \item $\cos(x + y) = \cos x \cos y - \sin x \sin y$
+    \item $\sin^2 x = (1 - \cos 2 x)/2$
+    \item $\cos^2 x = (1 + \cos 2x)/ 2$
+    \item $\cos \theta(t) = \sum_{m=0}^{\infty} \frac{(\theta(t))^{2m}}{(2m)!}$
+    \item $\sin \theta(t) = \sum_{m=0}^{\infty} (-1)^m \frac{(\theta(t))^{2m+1}}{(2m + 1)!}$
+\end{enumerate}
+
+\emph{Baseband:} unmodulated signal (i.e. the message signal).
+
+\emph{Passband:} modulated signal (i.e. the transmitted signal).
+
+\subsection{Modulation}
+
+\emph{AM Coherent modulation:} $r(t) = m(t) \cos 2\pi f_c t$, demodulate with $\cos 2\pi f_c t$ and LPF to recover $m(t)/2$.
+
+\emph{AM Large carrier:} $r(t) = (m(t) + A) \cos 2\pi f_c t$ ($A \gg m(t)$), demodulate with an envelope detector, LPF, and HPF to recover $m(t)$.
+
+\emph{AM Single sideband:} $r(t) = m(t) \cos 2\pi f_c t$ with an LPF applied to $m(t)$ before modulation (takes advantage of symmetry from $M(-f) = M^*(f)$ to use half the bandwidth), demodulate with $\cos 2\pi f_c t$ and LPF to recover $m(t)/2$.
+
+\emph{Frequency modulation:} $r(t) = \sin (2\pi f_c t + \beta \int_{-\infty}^t m(\tau)\; d\tau)$, demodulate by differentiating, envelope detecting, and HPF to recover $\beta m(t)$.
+
+\emph{Phase modulation:} $r(t) = \sin (2\pi f_c t + \beta m(t))$ (filter and integrate)
+
+\emph{How do you determine the bandwidth of an FM signal? What does it look like in the frequency domain? Hint: use linear system properties}
+
+\section{Feb 19 - Sampling}
+
+So far $m(t)$ has been a continuous-time signal. How do we represent it in the digital regime?
+
+We assumed the spectrum of $m(t)$ is bandlimited to $B$ Hz. How do we represent 
+\[m(t) \to \{m_1, m_2, \dots\}\] 
+a set of samples? (And especially a set of samples that we can use to reconstruct $m(t)$?)
+
+\emph{Trick:} 
+\[m(t) \lambda(t) = m(t) \sum_k \delta(t - kt)\] 
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (8, 0); 
+    \draw (4, -0.5) -- ++(0, 1);
+    \foreach \x in {0, 1, 2, 3, 4, 5, 6, 7} {
+        \draw[->, blue] (\x, 0) -- (\x, 1.3*rand);
+    }
+\end{tikzpicture}
+\end{center}
+
+What is the spectrum of this sampled signal?
+\begin{align*}
+    M(f) \star \Lambda(f) &= M(f) \star \int e^{-j\; 2\pi ft} \sum_k \delta(t - kT)\; dt\\ 
+    &= M(f) \star \sum_k e^{-j\; 2\pi fkT}\\
+\end{align*}
+
+Unfortunately, this tells us nothing. 
+
+Instead, let's represent $\lambda$ via \tbf{Fourier series}:
+\[\lambda(t) = \sum_{\ell = -\infty}^{\infty} \lambda_{\ell} e^{j\, \frac{2\pi}{T} \ell t}\]
+where 
+\[\lambda_{\ell} = \frac{1}{T} \int_{-T/2}^{T/2} \lambda(t) e^{-j\, \frac{2\pi}{T} \ell T} \; dt = \frac{1}{T}\]
+(note that on $t \in [-T/2, T/2]$, $\lambda$ is a single impulse)
+
+Hence, 
+\[\lambda(t) = \frac{1}{T}\sum_{\ell} e^{j\; \frac{2\pi}{T} \ell t}\]
+and using Fourier pairs, 
+\[\Lambda(f) = \frac{1}{T} \sum_{\ell} \delta(f - \frac{\ell}{T})\]
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (-3, 0) -- (3, 0); 
+    \draw (0, -0.5) -- ++(0, 2);
+    \foreach \x in {-2, -1, 1, 2} {
+        \draw[<-, blue] (\x, 1) -- (\x, 0) node[below] {$\frac{\x}{T}$};
+    }
+        \draw[->, blue] (0, 0) -- (0, 1) node[above right] {$\frac{1}{T}$};
+
+\end{tikzpicture}
+\end{center}
+
+Hence, we can draw $M(f) \star \Lambda(f)$
+
+% \begin{center}
+% \begin{tikzpicture}
+%     \draw (0, 0) -- (10, 0);
+
+%     \foreach \x in {1, ... , 8} {
+%         \draw (\x, 0) arc (90:270:0.5 and 1);
+%     }
+% \end{tikzpicture}
+% \end{center}
+
+and using an LPF brings back our signal. 
+
+This also gives us the \tbf{Nyquist Criterion} 
+\[\frac{1}{T} - B > B \implies \boxed{\frac{1}{T} > 2B} \]
+which tells us how fast we need to sample to be able to reconstruct the signal.
+
+\tbf{Remark:} we could also prove this asymptotically with random samples 
+
+What exactly is happening with the LPF here?
+\[\lambda(t) = \sum_{\ell} m(t) \delta(t - \ell T) = \sum \underbrace{m(\ell T)}_{m_{\ell}} \delta(t - \ell T) \]
+
+What is the inverse fourier transform of $\ind_{[-B, B]}$? 
+\[\int_{-B}^{B} e^{j\; 2\pi ft} \; df= \frac{1}{j\, 2\pi f t} e^{j\; 2\pi ft} \bigg\vert_{f=-B}^{f=B} = \frac{\sin 2\pi B t}{\pi t}\]
+
+So the effect of the LPF in time-domain is 
+\[\frac{\sin 2\pi B t}{\pi t} \star \lambda(t) = \frac{\sin 2\pi B t}{\pi t} \star \sum_{\ell} m_{\ell} \delta(t - \ell T)\]
+but anything convolved with an impulse is just the signal shifted so 
+\[\sum_{\ell} m_{\ell} \frac{\sin 2\pi B(t - \ell T)}{\pi(t - \ell T)}\]
+which is our \tbf{interpellation formula}. 
+
+Consider this signal:
+    \begin{center}
+    \begin{tikzpicture}
+        \draw (0, 0) -- (7, 0);
+
+        \draw (1 , 0) to[bend left] ++(1, 1) to[bend left] ++(1, -1); 
+        \node[below] at (2, 0) {$-f_c$};
+        \node[below left] at (1, 0) {$-f_c - B$}; 
+
+
+        \draw (4 , 0) to[bend left] ++(1, 1) to[bend left] ++(1, -1); 
+        \draw (5, 0.1) -- ++(0, -0.1) node[below] {$f_c$};
+        \draw (6, 0.1) -- ++(0, -0.1) node[below right] {$f_c + B$}; 
+
+    \end{tikzpicture}
+    \end{center}
+
+What's the lowest sampling rate we can use to reconstruct this signal?
+
+Certainly, via Nyquist, we need to have $1/T > 2B$. Can we do better? 
+
+Using SSB, we can cut down to $1/T > 2f_c$ (since we only need to sample the sideband).
+
+\section{Feb 24 - Quantization} 
+
+Motivated by the digital domain, we want to represent $m(t)$ as a collection of bits. 
+
+Using Nyquist, we sample 
+\[m(t) \to \{m(t_1), m(t_2), \dots, m(t_{N-1})\}\]
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$t$},
+    ylabel={$m$},
+    domain=0:2,
+    ymin=-2, ymax=2,
+    xmin= -0.5, xmax=2,
+    view = {0}{90}
+]
+    \addplot[blue, samples=100] {sin(2*pi*deg(x))};
+    \addplot[blue, samples=25, only marks, mark=o] {sin(2*pi*deg(x))};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+We will introduce a \tbf{N-level uniform quantizer} $Q(m)$ which maps $m(t_i)$ to the closest quantization level $q_j$ for $j = 0, \dots, N-1$.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={m},
+    ylabel={q},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \addplot coordinates {(-1.25, -1.5) (-1.25, -1) (-0.75, -1) (-0.75, -0.5) (-0.25, -0.5) (-0.25, 0) (0.25, 0) (0.25, 0.5) (0.75, 0.5) (0.75, 1) (1.25, 1) (1.25, 1.5)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+Now, at the receiver we receive a sequence of quantization levels (say $\{q_3, q_1, q_7, q_2, \dots\}$) and we can reconstruct $\hat m(t)$ by using the interpellation formula on the quantized samples.
+
+What if $m(t)$ looks like this?
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (10, 0);
+    \draw (5, -2) -- (5, 2); 
+
+    \draw[red, wavy] (2, 1) -- ++(2, 0);
+    \draw[red, wavy] (4, -1) -- ++(2, 0);
+    \draw[red, wavy] (6, 1) -- ++(2, 0);
+    \draw[red] (4, 1) -- (4, -1);
+    \draw[red] (6, 1) -- (6, -1);
+
+
+
+
+\end{tikzpicture}
+\end{center}
+
+Now all the detail is in the high frequencies so uniform quantization is not good! 
+
+We could try to make the quantization levels smaller but this wastes bits. 
+
+Another option is to tailor the quantizer given knowledge of the signal. Obviously, we can't know the signal exactly at the receiver to design a perfect quantizer but we can use some information about the distribution $f_m$ of $m(t)$ to do better. 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-1, 1},
+    ytick=\empty,
+    clip=false,
+    xlabel={$m$},
+    ylabel={$f_m(m)$},
+    domain=-2:2,
+    ymin=-0.5, ymax=1,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \addplot[samples=100, domain=0:2, blue] {0.6*exp(-20*(1-x)^2)};
+    \addplot[samples=100, blue, domain=-2:0] {0.6*exp(-20*(1+x)^2)};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+If we sample to see the $\P(M < m)$ for various levels $m$, we get the \tbf{cumulative distribution function} (CDF) of $M$, $F_M(m)$, and in fact 
+\[f_m(m) = \frac{d}{dm} F_m(m) \]
+
+To review, our scheme looks like 
+
+\begin{center}
+\begin{tikzpicture}
+    \node[draw, rectangle] (m) at (0, 0) {$m(t)$};
+    \draw[->] (m.east) -- ++(1, 0) node[right, draw, rectangle] (q) {quantizer};
+    \draw[->] (q.east) -- ++(1, 0) node[right, draw, rectangle] (t) {transmit};
+
+    \draw[blue, wavy] ($(t.east)+(0.1, 0)$) -- ++(2, 0);
+    \node[draw, rectangle] (r) at ($(t)+(4,0)$) {receiver};
+    \draw[->] (r.east) -- ++(1, 0) node[right, draw, rectangle] {$\hat m(t)$};
+
+
+\end{tikzpicture}
+\end{center}
+
+though, of course, $m(t) \neq \hat m(t)$ because of loss and quantization error. 
+
+Let $Q(m)$ be the quantization function for some $m$ sampled from $m(t)$. 
+
+Then 
+\begin{align*}
+    e^2 &= (m - Q(m))^2\\ 
+    \bar{e^2} &= \int f_M(m) (m - Q(m))^2 \; dm
+\end{align*}
+is the \tbf{expected error}
+
+What are the parameters that define a quantizer? Clearly the quantization levels $q_0, \dots, q_{N-1}$ but also the \tbf{decision boundaries} $x_0, \dots$ 
+
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-1, 1},
+    xticklabels={$x_0$, $x_1$},
+    ytick={-2, -1, 1},
+    yticklabels={$q_0$, $q_1$, $q_2$},
+    clip=false,
+    xlabel={$m$},
+    ylabel={$Q(m)$},
+    domain=-2:2,
+    ymin=-2, ymax=3,
+    xmin= -2, xmax=3,
+    view = {0}{90}
+]
+    \addplot coordinates {(-2, -2) (-1, -2) (-1, -1) (0.5, -1) (0.5, 1) (1.5, 1) };
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\[\mathcal Q = \{q_0, q_1, q_2, x_0, x_1\}\]
+and we want to find
+\[\min_{\mathcal Q} e^2\]
+
+so we take partials, set to zero, solve, and check the second partials for convexity
+
+\begin{exercise}
+    \textbf{Exercise:} 
+    \[z = x^2 + y^2\]
+
+    \begin{align*}
+        \frac{\partial z}{\partial x} &= 2x = 0\\ 
+        \frac{\partial z}{\partial y} &= 2y = 0\\ 
+        \frac{\partial^2 z}{\partial x^2} &= 2 > 0\\
+        \frac{\partial^2 z}{\partial y^2} &= 2 > 0
+    \end{align*}
+
+    So convex!
+
+    \div 
+
+    \[z = x^2 + 4xy + y^2\]
+
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        no markers,
+        xtick=\empty,
+        ytick=\empty,
+        clip=false,
+        xlabel={$x$},
+        ylabel={$y$},
+        view = {70}{20}
+    ]
+        \addplot3[surf] {x^2 - 4*x*y + y^2};
+        \addplot3[blue] {y};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+
+    \begin{align*}
+        \frac{\partial z}{\partial x} &= 2x + 4y = 0\\
+        \frac{\partial z}{\partial y} &= 2y + 4x = 0\\
+        \frac{\partial^2 z}{\partial x^2} &= 2\\
+        \frac{\partial^2 z}{\partial y^2} &= 2
+    \end{align*}
+
+    But this does not have a global minimum!
+\end{exercise}
+
+Let's try this for our error function.
+\begin{align*}
+    e^2 &= \int (m - Q(m))^2 f_M(m)\; dm\\ 
+    &= \int_{-\infty}^{x_0}(m - q_0)^2 f_M(m)\; dm + \int_{x_0}^{x_1} (m - q_1)^2 f_M(m)\; dm + \dots + \int_{x_{N-1}}^{\infty} (m - q_{N-1})^2 f_M(m)\; dm\\ 
+    \frac{\partial e^2}{\partial q_i} &= \frac{\partial}{\partial q_i} \int_{x_{i-1}}^{x_i} 2(q_i - m) f_M(m)\; dm\\ 
+    &= 2 \int_{x_{i-1}}^{x_i} (m - q_i) f_M(m)\; dm = 0\\ 
+    \frac{\partial e^2}{\partial x_i} &= \frac{\partial}{\partial x_i} \left[\int_{x_{i-1}}^{x_i} (m - q_i)^2 f_M(m)\; dm + \int_{x_i}^{x_{i+1}} (m - q_{i+1})^2 f_M(m)\; dm\right]\\
+    &= (m - q_i)^2 f_M(x_i) - (m - q_{i+1})^2 f_M(x_i) = 0
+\end{align*}
+via 
+\begin{proposition}
+    \textbf{Leibniz's Rule:} 
+    \[\frac{d}{dx} \int_{a(x)}^{b(x)} f(x, y)\; dy = f(x, b(x)) \cdot \frac{db}{dx} - f(x, a(x)) \cdot \frac{da}{dx} + \int_{a(x)}^{b(x)} \frac{\partial f}{\partial x}\; dy\]
+\end{proposition}
+which implies 
+\begin{align*}
+    (x_i - q_i)^2 &= (x_i - q_{i+1})^2 \\
+    x_i^2 - 2 x_i q_i + q_i^2 &= x_i^2 - 2 x_i q_{i+1} + q_{i+1}^2
+\end{align*}
+\[\boxed{q_i = \frac{q_{i-1} + q_{i+1}}{2}}\]
+and 
+\[
+    \int_{x_{i-1}}^{x_i} m f_M(m)\; dm = q_i \underbrace{\int_{x_{i-1}}^{x_i} f_M(m)\; dm}_{p_m = \P(m \in (x_{i-1}, x_i))}
+\]
+(assuming $f_M(x_i) \neq 0$) 
+
+At last giving an explicit formula for the quantization levels and decision boundaries:
+\[\boxed{q_i = \int_{x_{i-1}}^{x_i} m \frac{f_M(m)}{p_m}\; dm}\]
+which is precisely the \emph{conditional average on M} given $M \in (x_{i-1}, x_i)$
+
+Together, these are exactly the \tbf{Lloyd-Max Conditions} for optimal quantization. 
+
+\section{Feb 26 - Lloyd Max Review}
+
+Recall: we sample $m(t) \to \{m_1, m_2, \dots\}$ creating a pdf $f_M(m)$. The intuition is we want to use information from this pdf to design a quantizer that minimizes the expected error while using a reasonable number of quantization levels.
+
+Define an \emph{error function} 
+\[e^2 = \int (m - Q(m))^2 f_M(m)\; dm\]
+for $Q(m)$ a quantization function defined by quantization levels $q_0, \dots, q_{N-1}$ and breakpoints $x_0, \dots, x_{N-2}$.
+
+Since $Q$ is piecewise constant, we can write
+\[e^2 = \int_{-\infty}^{x_0} (m - Q(m))^2 f_M(m)\; dm + \int_{x_0}^{x_1} (m - Q(M))^2 f_M(m)\; dm + \dots + \int_{x_{N-2}}^{\infty} (m - Q(m))^2 f_M(m)\; dm\]
+
+We will blindly take partials using Leibniz and set to zero to minimize. 
+\begin{align*}
+    \frac{\partial e^2}{\partial x_i} &= \frac{\partial}{\partial x_i} \left[\int_{x_{i-1}}^{x_i} (m - q_{i+1})^2 f_M(m)\; dm + \int_{x_{i-1}}^{x_{i}} (m - q_{i})^2 f_M(m)\; dm\right]\\
+    &= -(x_i - q_{i+1})^2 f_M(x_i) + (x_i - q_i)^2 f_M(x_i) = 0
+\end{align*}
+
+Assuming $f_M(x_i) \neq 0$, we get
+\begin{align*}
+    (x_i - q_i)^2 &= (x_i - q_{i+1})^2 \\ 
+    x_i^2 - 2 x_i q_i + q_i^2 &= x_i^2 - 2 x_i q_{i+1} + q_{i+1}^2\\
+    2(q_{i+1} - q_i) x_i &= q_{i+1}^2 - q_i^2\\
+    2(q_{i+1} - q_i) x_i &= (q_{i+1} - q_i)(q_{i+1} + q_i)
+\end{align*}
+so 
+\[\boxed{x_i = \frac{q_{i+1} + q_i}{2}}\]
+
+that is, the breakpoints are the midpoints of the quantization levels - a very nice result!
+
+Now let's go back and take the partials with respect to $q_i$. First let $p_i = \P(m \in (x_{i-1}, x_i))$. 
+\begin{align*}
+    \frac{\partial e^2}{\partial q_i} &= \frac{\partial}{\partial q_i} \int_{x_{i-1}}^{x_i} 2(q_i - m) f_M(m)\; dm\\ 
+    &= 2 \int_{x_{i-1}}^{x_i} (m - q_i) f_M(m)\; dm = 0\\ 
+    &= \int_{x_{i-1}}^{x_i} m f_M(m)\; dm - q_i \int_{x_{i-1}}^{x_i} f_M(m)\; dm = 0\\
+\end{align*}
+so 
+\[\int_{x_{i-1}}^{x_i} m f_M(m)\; dm = q_i \int_{x_{i-1}}^{x_i} f_M(m)\; dm\]
+hence
+\[\boxed{q_i = \int_{x_{i-1}}^{x_i} m \frac{f_M(m)}{p_i}\; dm = \E[M \; | \; m \in (x_{i-1}, x_i)]}\]
+
+Together, the boxed equations are the \tbf{Lloyd-Max Conditions} for optimal quantization. 
+
+If given $\{x_i\}$, the optimal $\{q_i\}$ are given by the conditions. Similarly, if given $\{q_i\}$, the optimal $\{x_i\}$ are given by the conditions. 
+
+In particular, this optimality ensures the quantizer will be monotonic since it intuitively should correspond to ``binning'' the amplitudes of the samples. 
+
+\begin{exercise}
+    \textbf{Exercise:} Prove that the Lloyd-Max conditions are optimal (Hint: see quantization notes on canvas)
+\end{exercise}
+
+As we will see, our error function is \emph{convex}. 
+
+\tbf{Convexity (according to high school calculus):} $f(x)$ convex iff $\frac{d^2f(x)}{dx^2} > 0 \quad \forall x$ 
+
+\tbf{Convexity (for adults):} $f(x_1, \dots, x_n)$ convex iff $\forall x_1, x_2 \in \R^n$ and $\lambda \in [0, 1]$, 
+\[f(\lambda x_1 + (1 - \lambda)x_2) \leq \lambda f(x_1) + (1 - \lambda) f(x_2) \] 
+(corresponding to a chord between any two points of $f$ being above the curve)
+
+\tbf{Strictly convex:} $f$ is strictly convex if the above inequality is strict for $\lambda \in (0, 1)$
+
+\begin{exercise}
+    \textbf{Exercise:} Show that the two convexity definitions are equivalent. (Hint: use the Hessian)
+\end{exercise}
+
+\chapter{Interlude - Introduction to Probability and Stochastic Processes}
+\section{March 3}
+    \tbf{Random variable:} a map $X: \Omega \to \R$ for $\Omega$ an \emph{event space}. 
+
+    This map can take single events or sets of events as input. (Imagine for example the probability of rolling a 2 on two dice (one possibility) vs the probability of rolling a 7 on at least one die (multiple possibilities))
+
+    \tbf{Probability Mass Function (pmf):} $\{\omega_1, \dots, \omega_n\} \to \{p_1, \dots, p_n\}$ where $p_i = \P(\omega_i)$ satisfying 
+    \begin{enumerate}
+        \item $\sum_{i=1}^n p_i = 1$. 
+        \item $p_i \geq 0$ for all $i$.
+    \end{enumerate} 
+
+    \tbf{Cumulative distribution function (cdf):} $P(x) = \P(X \leq x)$ for a random variable $X$. 
+ 
+    \tbf{Expectation:} $\E[X] = \sum_{i=1}^n p_i X(\omega_i) := \bar X$
+
+    \emph{Examples:} 
+    \begin{itemize}
+        \item $\E[X^2] = \sum_{i=1}^n p_i X(\omega_i)^2$
+        \item $\E[f(X)] = \sum_{i=1}^n p_i f(X(\omega_i))$ 
+    \end{itemize}
+
+    \tbf{Property:} Expectation is linear: 
+    \[\E[f(X) + g(Y)] = \sum p_n (f(X) + g(Y)) = \sum p_n f(X) + \sum p_n g(Y) = \E[f(X)] + \E[g(Y)]\]
+
+    \begin{exercise}
+        \textbf{Exercise:} Calculate $\E[(X - \bar X)^2]$ 
+
+        \div 
+        \begin{align*}
+            \E[(X - \bar X)^2] &= \sum_{i=1}^n p_i (X(\omega_i) - \bar X)^2\\ 
+            &= \sum_{i=1}^n p_i (X(\omega_i)^2 - 2 X(\omega_i) \bar X + \bar X^2)\\
+            &= \sum_i p_i X_i^2 - 2 \bar X \sum p_i X_i + \bar X \sum p_i\\ 
+            &=  \E[X^2] - 2 \bar X \cdot \bar X + \bar X^2\\
+            &= \E[X^2] - \bar X^2\\ 
+            &= \Var[X]
+        \end{align*}
+    \end{exercise}
+
+    \tbf{Examples of PMFs:}
+    \begin{enumerate}
+        \item Uniform 
+        
+        \begin{center}
+        \begin{tikzpicture}
+            \draw (0, 0) -- (6, 0); 
+            \draw (0, -0.5)  -- ++(0, 1); 
+
+            \foreach \x in {1, ..., 5} {
+                \draw[blue] (\x, 0) -- (\x, 0.5) node {$\circ$}; 
+            }
+        \end{tikzpicture}
+        \end{center}
+
+        \item Poisson 
+        \[p_{\lambda}(k) = \frac{(\lambda T)^k}{k!} e^{-\lambda T}, \quad k = 0, 1, 2, \dots\] 
+        (nicely satisfying $\E[K] = \lambda T$)
+
+        \item Geometric 
+        \[p_{\alpha}(k) = (1 - \alpha) \alpha^k, \quad \alpha \in [0, 1], \; k = 0, 1, 2, \dots\]
+        (recall $\sum_{k=0}^{\infty} \alpha^k = 1/(1 - \alpha)$) 
+
+        \begin{center}
+        \begin{tikzpicture}
+        \begin{axis}[
+            width=0.3\textwidth,
+            axis lines=middle,
+            no markers,
+            xtick=\empty,
+            ytick={1},
+            yticklabels={$1 - \alpha$},
+            clip=false,
+            xlabel={$x$},
+            ylabel={$y$},
+            ymin=0, ymax=2,
+            xmin=0, xmax=5,
+            view = {0}{90}
+        ]
+            \addplot[blue, domain=0:5, samples=10, only marks, mark=o]  {0.6^x}; 
+        \end{axis}
+        \end{tikzpicture}
+        \end{center}
+
+        \item Binomial 
+        \[p_{\alpha}(k) = \binom{N}{k} \alpha^k (1 - \alpha)^{N-k}\] 
+        for $k$ the number of heads in $N$ Bernoulli trial with $\P(H) = \alpha$ and $\P(T) = 1 -\alpha$ 
+
+        (notice $\E[K] = \alpha K$)
+
+    \end{enumerate}
+
+    Now let's move on to \tbf{continuous random variables} where we have a \tbf{probability density function (pdf)} $f_X(x)$ such that
+    \begin{enumerate}
+        \item $f_X(x) \geq 0$ for all $x$.
+        \item $\int_{-\infty}^{\infty} f_X(x)\; dx = 1$
+    \end{enumerate} 
+    and a \tbf{cumulative distribution function (CDF)}
+    \[F_X(x) = \int_{-\infty}^x f_X(\xi)\; d\xi = \P(X \leq x)\]
+
+    \tbf{Expection of a continuous RV:} 
+    \[\E[X] = \int x f_X(x)\; dx := \bar X\]
+
+    \tbf{Variance of a continuous RV:} 
+    \[\Var[X] = \E[(X - \bar X)^2] = \int (x - \bar X)^2 f_X(x)\; dx = \E[X^2] - \E[\bar X]^2 = \E[X^2] - \bar X^2 = \sigma_X^2\]
+
+    Notice that from the definition of the CDF, we have 
+    \[F_X(x) = \int_{-\infty}^x f_X(y)\; dy \iff f_X(x) = \frac{d}{dx} F_X(x)\]
+    
+    \tbf{Joint Random Vairables:} Let $X, Y$ be two random vairables with joint pdf $f_{X, Y}(x, y)$ satisfying
+    \begin{enumerate}
+        \item $\int \int f_{X, Y}(x, y)\; dx\, dy = 1$
+        \item $f_{X, Y}(x, y) \geq 0$ for all $x, y$.
+    \end{enumerate}
+
+    notice that this first property leads to the \tbf{marginal pdfs}
+    \begin{align*}
+        f_X(x) &= \int f_{X, Y}(x, y)\; dy\\ 
+        f_Y(y) &= \int f_{X, Y}(x, y)\; dx
+    \end{align*}
+    hence 
+    \begin{align*}
+        \E[X] &= \bar X = \int \int x f_{X, Y}(x, y)\; dx\, dy\\
+        \E[Y] &= \bar Y
+    \end{align*}
+
+    Notice that we do not know that $X$ and $Y$ are independent. 
+
+    Consider these two examples:
+    \begin{center}
+        \begin{multicols}{2}
+            \begin{center}
+            \begin{tikzpicture}
+            \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=0:1.5,
+                ymin=-0.5, ymax=2,
+                xmin= -0.5, xmax=2,
+                view = {0}{90}
+            ]
+                \addplot[blue, fill, fill opacity=0.1] {x} \closedcycle;
+            \end{axis}
+            \end{tikzpicture}
+            \end{center}
+
+            \begin{center}
+            \begin{tikzpicture}
+            \begin{axis}[
+                width=0.3\textwidth,
+                axis lines=middle,
+                no markers,
+                xtick=\empty,
+                ytick=\empty,
+                clip=false,
+                xlabel={$x$},
+                ylabel={$y$},
+                domain=0:1.5,
+                ymin=-0.5, ymax=2,
+                xmin= -0.5, xmax=2,
+                view = {0}{90}
+            ]
+                \addplot[blue, fill, fill opacity=0.1] {1} \closedcycle;
+            \end{axis}
+            \end{tikzpicture}
+            \end{center}
+        \end{multicols}
+    \end{center}
+
+    If we know $X \cdot Y = 1$, then in the first example, knowing $X = 0$ fixes $Y$. In the second case, knowing $X = 0$ only tells us that $Y \sim \text{Unif}(0, 1)$ -- no new information. 
+
+    \tbf{Conditional probability:}
+    \[f_{X |Y}(x\; | \; y) = \frac{f_{X, Y}(x, y)}{f_Y(y)}\]
+    (the joint pdf divided by the marginal pdf of $Y$)
+
+    \tbf{Bayes' Theorem:} 
+    \[f_{X, Y}(x, y) = f_{X |Y}(x\; | \; y) f_Y(y) = f_{Y  | X}(y \; | \; x) f_X(x)\]
+
+    \tbf{Independence:} $X$ and $Y$ are independent iff 
+    \[f_{X | Y} (x \; | \; y) = f_X(x)\] 
+    Intuitively,, telling me $y$ tells me nothing about $x$.  
+
+    \begin{exercise}
+        \textbf{Exercise:} Show that for independent $X, Y$ 
+        \[f_{X, Y}(x, y) = f_X(x) f_Y(y)\]
+    \end{exercise}
+    
+    \tbf{Correlation:} 
+    \[\E[XY] = \int \int x\, y\; f_{X, Y} (x, y) \; dx\, dy\]
+    which is precisely $\E[X] \cdot \E[Y]$ for independent $X, Y$
+
+    \tbf{Covariance:}
+    \[\E[(X - \bar X)(Y - \bar Y)] = \int \int (X - \bar X)(Y - \bar Y) f_{X, Y}(x, y)\; dx\, dy\]
+    and since $\E[X - \bar X] = 0$, we have that the covariance is \emph{zero} for independent $X, Y$
+
+    \tbf{Gaussian:}
+    \[f_X(x) = \frac{1}{\sqrt{2\pi \sigma^2}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}\]
+
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        no markers,
+        xtick={2},
+        xticklabels={$\mu$},
+        ytick=\empty,
+        clip=false,
+        xlabel={$x$},
+        ylabel={$y$},
+        domain=0:5,
+        ymin=-0.5, ymax=2,
+        xmin= -1, xmax=5,
+        view = {0}{90}
+    ]
+        \addplot[blue, samples=100] {exp(-5*(x-2)^2)};
+        \draw [<->] (1.6, 0.5) -- (2.4, 0.5) node[midway, below] {$2\sigma$};
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+
+    \tbf{Joint Gaussian:}
+    \[f_X(x_1, \dots, x_N) = \left(\frac{1}{2\pi}\right)^{N/2} \abs{K}^{-1/2} \exp\left(\frac{-(\vec x - \vec \mu)^{\top} K^{-1} (\vec x - \vec \mu)}{2}\right) \]
+    for covariance matrix 
+    \[K = \E[( \vec{x} - \vec \mu)(\vec x - \vec \mu)^{\top}] = \begin{pmatrix}
+        \sigma_1^2 & \Cov[X_1, X_2] & \dots & \Cov[X_1, X_N]\\
+        \Cov[X_2, X_1] & \sigma_2^2 & \dots & \Cov[X_2, X_N]\\
+        \vdots & \vdots & \ddots & \vdots\\
+        \Cov[X_N, X_1] & \Cov[X_N, X_2] & \dots & \sigma_N^2
+    \end{pmatrix}\]
+    
+    \begin{proposition}
+        \textbf{Theorem:} If $X, Y$ are jointly Gaussian, 
+        \[\Cov(X, Y) = 0 \implies X \perp Y\]
+        and for any $X, Y$ independent 
+        \[X \perp Y \implies \Cov(X, Y) = 0\]
+    \end{proposition}
+
+    \tbf{Adding Random Variables:} Suppose $Z = X + Y$. Given $f_{X, Y}(x, y)$, what is $F_Z(z)$?
+
+    First, 
+    \[\P(Z \leq z) = \P(X + Y \leq z)\]
+
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        no markers,
+        xtick=\empty,
+        ytick=\empty,
+        clip=false,
+        xlabel={$x$},
+        ylabel={$y$},
+        domain=-2:3,
+        ymin=-2, ymax=2,
+        xmin= -2, xmax=2,
+        view = {0}{90}
+    ]
+        \addplot[fill, fill opacity=0.1, blue] {1 - x};
+        \draw[draw=none,pattern=north west lines, pattern color=blue!40] (-2, 3)--(3, -2)--(-2,-2)--cycle;
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+
+    Hence 
+    \begin{align*}
+        \P(Z \leq z) &= \int_{-\infty}^{\infty} \int_{-\infty}^{z-x} f_{X, Y}(x, y) \; dy\, dx\\ 
+        &= \int_{-\infty}^{\infty} \int_{-\infty}^{z-x} f_{X}(x) f_Y(y) \; dy\, dx \qquad (X \perp Y)\\
+        \frac{d}{dz} \P(Z \leq z) &= \int_{-\infty}^{\infty} f_X(x) \cdot f_Y(z-x) \; dx \qquad \text{(Leibniz)}\\ 
+        &= (f_X \star f_Y)(z)
+    \end{align*}
+    
+    Example, if $Z = X + Y$ for $X, Y \iid \text{Unif}(-1, 1)$, then
+    \begin{center}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        axis equal,
+        no markers,
+        xtick=\empty,
+        ytick=\empty,
+        clip=false,
+        xlabel={$z$},
+        ylabel={$f_Z(z)$},
+        domain=-2:2,
+        ymin=-0.5, ymax=2,
+        xmin= -2, xmax=2,
+        view = {0}{90}
+    ]
+        \addplot[blue, domain=-1:0] {1+x};
+        \addplot[blue, domain=0:1] {1-x};
+
+    \end{axis}
+    \end{tikzpicture}
+    \end{center}
+
+    We have seen this over an over. Now what happens if we take $Z + Z$? 
+    
+    \begin{center}
+        \includegraphics[width=0.5\textwidth]{Images/iterated_convolution.png}
+    \end{center}
+
+    We find that it smooths out. What happens if we keep iterating?
+
+    \tbf{Central limit theorem:} For $X_k$ iid, 
+    \[\lim_{n \to \infty} \frac{1}{\sqrt n} \sum_{k=1}^n (X_k - \bar X)  \to \Nc(0, \sigma^2)\]
+
+
+\end{document}

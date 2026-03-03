@@ -1,0 +1,429 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{letterpaper, margin=0.25in}
+\usepackage{graphicx} 
+\usepackage{multicol}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array} 
+\usepackage{paralist} 
+\usepackage{verbatim}
+\usepackage{sectsty}
+\usepackage[shortlabels]{enumitem}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{empheq}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{tikz-cd}
+\usepackage{circuitikz}
+\usepackage{multirow}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{intersections, decorations.markings}
+\tikzset{
+    marking along/.style n args={2}{
+        decoration={
+                markings, 
+                mark=at position #1 with {\arrow{#2}}
+        },
+        postaction={decorate}
+        },
+    marking along/.default={0.5}{>}
+    wavy/.style={
+        decorate,decoration={coil,aspect=0}
+     },
+    two marks/.style n args={1}{
+        decoration={
+            markings,
+            mark=at position 0.25 with {\arrow{#1}},
+            mark=at position 0.75 with {\arrow{#1}}
+         },
+         postaction={decorate}
+    }
+    two marks/.default={>}
+}
+
+\colorlet{mygreen}{green!50!teal}
+\colorlet{darkblue}{blue!60!black}
+
+\newcommand{\ans}[1]{\boxed{\text{#1}}}
+\newcommand{\vecs}[1]{\langle #1\rangle}
+\renewcommand{\hat}[1]{\widehat{#1}}
+
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+
+\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\qed}{\quad \blacksquare}
+
+\newcommand{\brak}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bra}[1]{\left\langle #1 \right\vert}
+\newcommand{\ket}[1]{\left\vert #1 \right\rangle}
+
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\mfX}{\mathfrak{X}}
+\newcommand{\ep}{\varepsilon}
+
+\newcommand{\Ec}{\mathcal{E}}
+\newcommand{\Nc}{\mathcal{N}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\X}{\chi}
+\renewcommand{\L}{\mathcal{L}}
+
+\newcommand{\sub}{\subseteq}
+\newcommand{\st}{\text{ s.t. }}
+\newcommand{\card}{\text{card }}
+\renewcommand{\div}{\vspace*{10pt}\hrule\vspace*{10pt}}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\inj}{\hookrightarrow}
+\newcommand{\biject}{\hookrightarrow \hspace{-8pt} \rightarrow}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\overcirc}[1]{\overset{\circ}{#1}}
+\newcommand{\diam}{\text{diam }}
+\newcommand{\iid}{\overset{	ext{iid}}{\sim}}
+
+\renewcommand{\Re}{\text{Re}\,}
+\renewcommand{\Im}{\text{Im}\,}
+\newcommand{\Var}{\text{Var}\,}
+\newcommand{\Cov}{\text{Cov}\,}
+
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+
+\newcommand{\sign}{\text{sign}\,}
+
+\newcommand*{\tbf}[1]{\ifmmode\mathbf{#1}\else\textbf{#1}\fi}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins}
+\tcbset{enhanced}
+\newenvironment*{tbox}[2][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable,
+        title={#2}
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{exercise}[1][red]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{proof}[1][blue]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+\newenvironment*{proposition}[1][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+
+\begin{document}
+\begin{multicols}{2}
+    \begin{flushleft}
+        \parbox{0.5\textwidth}{\Large Quiz 1 Review}
+    \end{flushleft}
+    \begin{flushright}
+        \tbf{Milan Capoor}
+    \end{flushright}
+\end{multicols}
+\div
+
+\begin{exercise}
+    \textbf{Exercise:}  You have program material $m(t)$ that's band-limited to $\pm B$. Please describe (in words and math, but don't write a novel ) the following concepts:
+    \begin{enumerate}
+        \item Synchronous amplitude modulation and demodulation
+        \item Single sideband AM
+        \item The benefits of large carrier amplitude modulation and demodulation from a receiver cost perspective.
+    \end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item Modulate by a high frequency sinusoid (say $\cos 2\pi f_c t$), transmit $r(t) = m(t) \cos 2\pi f_c t$ and demodulate with the same sinusoid. 
+    \[s(t) = m(t) \cos^2 2\pi f_c t = \frac{m(t)}{2} + \frac{m(t)}{2}\cos 2\pi f_c t\]
+            
+    Applying a LPF will strip the second term leaving $m(t) / 2$. 
+
+    \item  As in synchronous AM, modulate by $\cos 2\pi f_c t$. This time, LPF before transmitting to reduce the bandwidth. We can use an envelope detector, HPF, and LPF on the receiver to take advantage of the fact that $M(-f) = M^*(f)$ and symmetry will allow us to recover the full signal. 
+    
+    \item $A + m(t) > 0$ so an envelope detector (plus some filtering) will reconstruct the signal. This is a very cheap receiver (one diode, one resistor, one capacitor)
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} Why Frequency/Phase Demodulation Expands Bandwidth: Consider the
+generic ``frequency modulated” signal $r(t) = \cos (2\pi f_ct + \kappa \theta(t))$ where the program material is embedded in $\theta(t)$ and $\kappa$ is the modulation index. We waved our hands in class to say that increasing $\kappa$ increases the bandwidth of $r(t)$ about the carrier frequency $f_c$. You're going to nail that down a little better here.
+
+\begin{enumerate}
+    \item Use trigonometric identities to write $r(t)$ as a sum of amplitude-modulated
+    signals, one on $\sin 2\pi f_ct$ and the other on $\cos 2\pi f_ct$
+
+    \item Write $\cos \kappa \theta(t)$ as a Taylor (well, Maclaurin) series. Do the same for $\sin \kappa \theta(t)$.
+
+
+    \item If $\theta(t)$ has bandwidth $\pm B$, what is the bandwidth of $(\theta(t))^k$ where $k \geq 0$ is an integer?
+    
+
+    \item What is the bandwidth of $r(t)$ about $f_c$ if $\kappa  = 0$? How about when $0 <
+    \kappa \theta(t) \ll 1\quad \forall t$?
+    \item Why does the bandwidth of $r(t)$ increase with increasing $\kappa$?
+    HINT: Argue your result in terms of Taylor series accuracy. But don't write a novel
+
+\end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item \begin{align*}
+        \cos(x + y) &= \cos x \cos y - \sin x \sin y\\ 
+        r(t) &= \cos(2\pi f_c t + \kappa \theta(t))\\ 
+        &= \cos 2\pi f_c t \cos \kappa \theta(t) - \sin 2\pi f_c t \sin \kappa \theta(t)
+    \end{align*}
+
+    \item \begin{align*}
+            \cos \kappa \theta(t) &= \sum_{m=0}^{\infty} \frac{(\kappa \theta(t))^{2m}}{(2m)!}\\
+            \sin \kappa \theta(t) &= \sum_{m=0}^{\infty} (-1)^m \frac{(\kappa \theta(t))^{2m+1}}{(2m + 1)!}
+        \end{align*}
+
+    \item $\theta^k(t) \implies \underbrace{\Theta(f) \star \dots \Theta(f)}_{k \text{ times}}$. Each convolution doubles the bandwidth ($\int_{-B}^B \Theta(\tau) \Theta(t - \tau)\; d\tau \implies \abs{t - \tau} \leq 2B$) so the bandwidth of $\theta^k(t)$ is $\pm kB$.
+    
+    \item If $\kappa = 0$, $r(t) = \cos 2\pi f_c t$. This is just impulses in the frequency domain so bandwidth is $0$. 
+    
+    If $\kappa \theta(t) \ll 1$, 
+    \[r(t) = \cos 2\pi f_c t \sum_{m=0}^{\infty} \frac{(\kappa\theta(t))^{2m}}{(2m)!} - \sin 2\pi f_c t \sum_{m=0}^{\infty}\frac{(\kappa \theta(t))^{2m + 1}}{(2m + 1)!}\] 
+    
+    For small $\kappa$, $(\kappa\theta(t))^{2m} \approx 0$ as $m \to \infty$ so $\cos \kappa \theta(t) \approx 1$ and $\sin \kappa \theta(t) \approx \kappa \theta(t)$ 
+    \[r(t) \approx \cos 2\pi f_c t - \kappa \theta(t)\sin 2\pi f_c t\]
+    which is impulses and $\F(\kappa \theta(t)) \star \F(\sin 2\pi f_c t) \implies \pm B$
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} Obligatory Linear Systems Problem: Suppose you have a transformation that
+obeys additivity: $L[x + y] = L[x] + L[y]$. Please show (a gentle way of saying PROVE )
+that the following properties hold.
+\begin{enumerate}
+    \item “Show” that $L[0] = 0 $
+    \item Show that $L[-x] = -L[x]$ for all $x$.
+    \item Show that $L[kx] = kL[x]$ for $k \in \N$ 
+    \item Show that $L[k/m x] = k/m L[x]$ for $k \in \N$, $m \in \N^+$
+    \item Does the definition of linearity require scaling or can we get away with only additivity? Why/Why not?
+\end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item $L[0] = L[0 + 0] = L[0] + L[0] = 2L[0] \implies L[0] = 0$
+    \item \begin{align*}
+        L[0] = L[x - x] &\implies L[x - x] = 0\\ 
+        &\implies L[x - x] = L[x + (-x)] = L[x] + L[-x] = 0\\ 
+        &\implies L[-x] = -L[x]
+    \end{align*}
+    \item $L[kx] = L\left[\sum_{n=1}^k x\right] = \sum_{n=1}^k L[x] = k L[x]$
+    \item $m L[\frac{k}{m}x] = L[kx] = kL[x] \implies L[\frac{k}{m}x] = \frac km L[x]$ 
+    
+    \item We can invoke density of the rationals to get $\alpha \in [\frac{k_1}{m_1}, \frac{k_2}{m_2}], \quad \forall \alpha \in \R$ but $\alpha L[x] \in [\frac{k_1}{m_1} L[x], \frac{k_2}{m_2} L[x]]$ requires $L$ continuous. 
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} Cora uses 
+    \[s_c(t) = Ac(t) \cos 2\pi f_c t\]
+
+    Marty uses 
+    \[s_m(t) = \sin(2\pi f_m t + \kappa \M(t)), \qquad \M(t) = \int_{-\infty}^t m(\tau)\; d\tau\]
+
+    Suppose $f_c = f_m$ so both hear 
+    \[r(t) = s_c(t) + s_m(t)\]
+
+    \begin{enumerate}
+        \item Suppose Cora uses synchronous AM. What is the output of Cora's receiver? Stating your assumptions, discuss how much/little Marty's signal corrupts what Cora's listeners hear and what, if anything, can Cora do to mitigate Marty's interference
+        
+        \item Please calculate the average energy in one cycle of a sinusoid at frequency $f_c$. As a reminder, the power in a signal x(t) over an interval [0,T] is
+        \[P = \frac{1}{T} \int_0^T |x(t)|^2 dt\]
+
+        \item  In the text (and another way in the homework) we found that the single-sided
+        bandwidth (band to one side of $f_m$) $\Delta$ of an FM/PM signal increases with modulation
+        index $\kappa$. Carson's Rule: $\Delta = (\kappa + 1)B$. We will assume that even at maximal FCC-limited $\kappa$ we have $\Delta \ll f_m$. What is the approximate amount of power in $s_m(t)$ over
+        an interval $[0,1/f_m]$? Please state all assumptions and justify your argument.
+        HINT: Sketch an example $S_m(f)$ to scale using the assumptions of this part of the
+        problem.
+
+        \item What is the average energy density (Watts/Hz) of $s_m(t)$ in the band $f_m \pm \Delta$. Assuming Marty's signal power is uniformly distributed across $f_c \pm \Delta$, and that Marty's listeners are linear systems wizards, how can they modify their FM receivers to mitigate the interference Cora produces? Please state all assumptions and justify your argument qualitatively and quantitatively. But again, no novels, neither prose nor mathematics.
+
+    \end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item \begin{align*}
+        r(t) \cos 2\pi f_c t &= Ac(t) \cos^2 2\pi f_c t + \sin(2\pi f_m t + \kappa \M(t)) \cos 2\pi f_c t\\
+        &= Ac(t) \cos^2 2\pi f_c t + \sin(2\pi f_m t) \cos(\kappa \M(t)) + \sin(\kappa \M(t)) \cos (2\pi f_m t) cos 2\pi f_c t\\ 
+        &= \frac{Ac(t)}{2} + \frac{Ac(t)}{2} \cos 4\pi f_c t + \sin(2\pi f_m t) \cos(\kappa \M(t)) + \frac{\sin (\kappa \M(t))}{2} + \frac{\sin (\kappa \M(t))}{2} \cos (4\pi f_c t)
+    \end{align*}
+
+    After LPF, we have roughly 
+    \[\frac{Ac(t)}{2} + \frac{\sin (\kappa \M(t))}{2} \]
+
+    If Cora can choose $A$ so $Ac(t) \gg 1$, Marty's interference will be small. 
+
+    \item \begin{align*}
+        P &=   f_c \int_0^{1/(f_c)} \abs{\cos(  f_c \tau)}^2\; d\tau\\ 
+        &=   f_c \int_0^{1/(  f_c)} \cos^2(  f_c \tau) \; d\tau\\ 
+        &=   f_c \left[\cos (  f_c \tau) \sin(  f_c \tau)\right]_0^{1/(  f_c)} +   f_c \int_0^{1/(  f_c)} \sin^2(  f_c \tau)\; d\tau\\
+        &=   f_c \left[\cos (  f_c \tau) \sin(  f_c \tau)\right]_0^{1/(  f_c)} +   f_c \int_0^{1/(  f_c)} 1 - \cos^2(  f_c \tau)\; d\tau\\ 
+        2\pi f_c \int_0^{1/(  f_c)} \cos^2(  f_c \tau) \; d\tau &=   f_c \left[\cos (  f_c \tau) \sin(  f_c \tau)\right]_0^{1/(  f_c)} +   f_c \int_0^{1/(  f_c)} 1\; d\tau\\ 
+        2P &=  1 \implies P = 1/2
+    \end{align*}
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} You are given 
+    \[r(t) = \sin\left(2\pi f_c t + \int_{-\infty}^t 2\pi k_f m(\tau)\; d\tau\right) \]
+
+    \begin{enumerate}
+        \item If $m(t) = u(t) - 2u(t- 1) + u(t- 2)$, $f_c = 2$ and $k_f = 1$, sketch $r(t)$ for $t \in [-1, 3]$.
+        \item What type of modulation does r$(t)$ represent? How can $m(t)$ be recovered
+        from $r(t)$ in general? Please draw a labeled block diagram of your receiver which does
+        the recovery. Please state your assumption
+        \item Suppose $|m(t)| \leq 1$ and $k_f = 200\pi f_c$. Will your receiver still work? Why/Why not? Please state your assumptions
+
+    \end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item \begin{align*}
+        m(t) &= \begin{cases}
+                0 & t < 0\\
+                1 & 0 \leq t < 1\\ 
+                -1 & 1 \leq t < 2\\ 
+                0 & t \geq 2
+        \end{cases}\\ 
+        \M(t) &= \int_{-\infty}^t 2\pi m(\tau)\; d\tau\\ 
+        &= \int_0^t 2\pi m(\tau )\; d\tau\\ 
+        &= \begin{cases}
+            0 & t < 0\\ 
+            2\pi t & 0 \leq t < 1\\ 
+            2\pi - 2\pi t & 1 \leq t < 2\\ 
+            0 & t \geq 2
+        \end{cases}\\ 
+        r(t) &= \begin{cases}
+            \sin(4\pi t) & t < 0\\ 
+            \sin(6\pi t) & 0 \leq t < 1\\ 
+            \sin(2\pi t) & 1 \leq t < 2\\ 
+            \sin (4\pi t) & t \geq 2
+        \end{cases}
+    \end{align*}
+
+    \item Frequency modulation. Differentiate, envelope detect, and HPF to filter constant DC
+
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} 
+    \begin{enumerate}
+        \item Delilah the delta function, $D \delta (t)$, and her little sister Angela, $a \delta (t -a)$, applied themselves to the input of a linear time invariant system $h(t)$ to produce output $y(t)$. Assuming $D$ and $a$ are constants, please express $y(t)$ in terms of $h(t)$, $D$ and $a$. What is $Y (f) = \F[y(t)]$in terms of $H(f) = \F[h(t)]$, $D$ and $a$?
+
+        \item Please derive an analytic expression for $X(f) = \F[x(t)]$ when $x(t) =
+        \cos(2\pi f_1 t) \sin(2\pi f_1 t)$
+
+        \item If $m(t)$ has bandwidth $\pm B$. What is the bandwidth of $m^k(t)$ for $k$ a positive integer? Please justify your answer
+
+        \item Use the fact that $\lim_{\mu \to 0} e^{-\abs{\mu t}} e^{j 2\pi f_0 t} = e^{j 2\pi f_0 t}$ to quantitatively explain how one might argue that $\F[e^{j\, 2\pi f_0 t}] =  \delta (f -f_0).$
+        HINT: If you try to do this to proof-level completion, you’ll be here all day. I want only a quantitative explanation for why the result is plausible
+    \end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item \begin{align*}
+        y(t) &= D h(t) + ah(t - a)\\
+        Y(f) &= DH(f) + aH(f)e^{-j\; 2\pi fa}
+    \end{align*}
+
+    \item \begin{align*}
+        X(f) &= \F[\cos 2\pi f_1 t] \star \F[\sin(2\pi f_1 t)]\\
+            &= [\frac{1}{2}(\delta(f + f_1) + \delta(f - f_1))] \star [\frac{1}{2j}(\delta(f + f_1) - \delta(f - f_1))]\\ 
+            &= \frac{1}{4j}[\delta(f + 2f_1) - \delta(f) + \delta(f) - \delta(f - 2f_1)]\\ 
+            &= \frac{1}{4j}[\delta(f - 2f_1) - \delta(f + 2f_1)]
+    \end{align*}
+
+    \item $\pm kB$ since $m^k \iff M(f) \star \dots \star M(f)$.
+    
+    \item \[\F[e^{j\; 2\pi f_0t}] = \int e^{j\; 2\pi f_0t} e^{-j\; 2\pi ft}\; dt = \int e^{j\; 2\pi (f - f_0) t}\; dt\]
+\end{enumerate}
+
+\begin{exercise}
+    \textbf{Exercise:} 
+    \begin{enumerate}
+        \item Sketch $c(2\pi f_c t) = \text{sgn}(\cos 2\pi f_c t)$ and $s(2\pi f_c t) = \text{sgn}(\sin 2\pi f_c t)$ for $f_c = 10$. 
+        
+        \item Suppose Cora has program material $m(t)$ and uses it to modulate $c(2 \pi f_ct)$ where $f_c = 10$. Carefully sketch the signal $r(t) = m(t)c(2 \pi f_ct)$ for some $m(t)$ of your choosing which varies slowly as compared to$ c(2 \pi f_ct)$.
+        
+        \item Now suppose we form $r(t) = m(t)c(2\pi f_ct)$ Assume $c(2\pi f_ct)$ is available at the receiver (a synchronous squirrel system!). Show EXACTLY how m(t) can be recovered at the receiver. Or if it cannot, show why not. As compared to modulation/demodulation using sinusoids, explain why a low pass filter is necessary (or unnecessary) to recover m(t).
+        
+        \item suppose Cora gets normal – evil twin squirrel pairs and forms
+        $r(t) = m_1(t)c(2\pi f_ct) + m_2(t)s(2\pi f_ct)$ where both $m_1(t)$ and $m_2(t)$ vary slowly as compared to $c(2\pi f_ct)$ and $s(2\pi f_ct)$. Assuming both $c(2\pi f_ct)$ and $s(2\pi f_ct)$ are available  at the receiver (evil synchronous squirrels too!), show EXACTLY how $m_1(t)$ and $m_2(t)$ can be recovered. Or if they cannot, show why not
+        
+        \item Suppose $r(t) = (1 + m(t))c(2\pi f_ct)$ where $|m(t)| \leq 1$. To recover $m(t) $Cora full wave rectifies r(t) to obtain $z(t) = |r(t)|$ and then applies an operator T [] to z(t). What operator T [·] should Cora use to recover m(t)? Is this operator linear?
+    \end{enumerate}
+\end{exercise}
+
+\begin{enumerate}
+    \item \begin{align*}
+        c(2\pi f_c t) &= \text{sgn}(\cos 20 \pi t)\\ 
+            &= \begin{cases}
+                1 & 0 \leq t < 1/40\\ 
+                -1 & 1/40 \leq t < 1/20\\ 
+                1 & 1/20 \leq \dots
+            \end{cases}
+    \end{align*}
+    \item Scale part (1) vertically by $m(t)$. 
+    \item $s(t) = m(t) c^2(2\pi f_c t) = m(t)$. (Assuming the mod/demod is perfectly synchronized with no phase shift). LPF is unnecessary since message spectrum unchanged
+    
+    \item Demodulate by $c(2\pi f_c t)$ on one rail and $s(2\pi f_c t)$ on the other. 
+    
+    \begin{align*}
+        m_1(t) c^2(2\pi f_c t) + m_2(t) c(2\pi f_c t) s(2\pi f_c t) &= m_1(t) + [m_2(t) - m_2(t)] = m_1(t)\\ 
+        m_2(t) c(\cdot) s(\cdot) + m_2s^2(\cdot) = m_2
+    \end{align*}
+
+    LPF still not necessary
+    
+    \item \begin{align*}
+        z(t) &= \abs{c(2\pi f_c t) + m(t) c(2\pi f_c t)}\\ 
+        &= \begin{cases}
+            \abs{-1 - m(t)} & c(\cdot) < 0\\ 
+            \abs{1 + m(t) } & c(\cdot) > 0
+        \end{cases}\\ 
+        &= 1 + m(t)
+    \end{align*}
+
+    Hence, Cora should apply a constant DC bias with $T[x] = x - 1$, which is not linear ($T[0] \neq 0$) 
+    
+\end{enumerate}
+\end{document}
+
