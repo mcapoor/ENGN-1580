@@ -103,6 +103,8 @@
 
 \DeclareMathOperator*{\argmax}{\arg\max}
 \DeclareMathOperator*{\argmin}{\arg\min}
+\DeclareMathOperator*{\Unif}{\text{Unif}\,}
+
 
 \newcommand{\sign}{\text{sign}\,}
 
@@ -2392,6 +2394,8 @@ As we will see, our error function is \emph{convex}.
         \frac{d}{dz} \P(Z \leq z) &= \int_{-\infty}^{\infty} f_X(x) \cdot f_Y(z-x) \; dx \qquad \text{(Leibniz)}\\ 
         &= (f_X \star f_Y)(z)
     \end{align*}
+
+    Convolution!!
     
     Example, if $Z = X + Y$ for $X, Y \iid \text{Unif}(-1, 1)$, then
     \begin{center}
@@ -2428,6 +2432,294 @@ As we will see, our error function is \emph{convex}.
 
     \tbf{Central limit theorem:} For $X_k$ iid, 
     \[\lim_{n \to \infty} \frac{1}{\sqrt n} \sum_{k=1}^n (X_k - \bar X)  \to \Nc(0, \sigma^2)\]
+
+\section{March 5 - Gaussians and Stochastic Processes}
+
+\subsection{Gaussians} 
+
+\tbf{Univariate Gaussian:}
+\[f_{\mu, \sigma}(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{1}{2} \left(\frac{x - \mu}{\sigma}\right)^2\right)\]
+
+\tbf{Multivariate Gaussian:}
+\[f_{K, \vec mu} = \left(\frac{1}{2\pi}\right)^{N/2} \abs{K}^{-1/2} \exp\left(-\frac{1}{2} (\vec x - \vec \mu)^{\top} K^{-1} (\vec x - \vec \mu)\right)\] 
+
+Consider the case where $\vec X = (X_1, X_2)^{\top}$. What do we need to know to find the joint Gaussian pdf? Only the mean $\vec \mu$ and the covariance matrix $K$.
+\[K = \E\begin{bmatrix}
+    \Var X_1 & \Cov[X_1, X_2]\\
+    \Cov[X_2, X_1] & \Var X_2
+\end{bmatrix} = \E\begin{bmatrix}
+    (X_1 - \mu_1)^2 & (X_1 - \mu_1)(X_2 - \mu_2)\\
+    (X_2 - \mu_2)(X_1 - \mu_1) & (X_2 - \mu_2)^2
+\end{bmatrix} = \E[(\vec X - \vec \mu)^{\top}(\vec x - \vec \mu)]\]
+
+\emph{Notation:} $\Var X_1 = \sigma_1^2$ and $\Cov[X_1, X_2] = \rho_{12}$
+
+What if $\rho_{12} = \rho_{21} = 0$? Then 
+\[K = \begin{pmatrix}
+    \sigma_1^2 & 0\\ 
+    0 & \sigma_2^2
+\end{pmatrix}\]
+so 
+\[K^{-1} = \begin{pmatrix}
+    1/\sigma_1^2 & 0\\ 
+    0 & 1/\sigma_2^2
+\end{pmatrix}, \qquad \abs K = \sigma_1^2 \sigma_2^2\]
+hence 
+\begin{align*}
+    f_{K, \vec \mu}(x) &= \left(\frac{1}{2\pi}\right) \frac{1}{\sqrt{\sigma_1^2 \sigma_2^2}} \,\exp\left(-\frac{1}{2} \begin{pmatrix}
+        x_1 - \mu_1\\ 
+        x_2 - \mu_2
+    \end{pmatrix}^{\top} \begin{pmatrix}
+        1/\sigma_1^2 & 0\\ 
+        0 & 1/\sigma_2^2
+    \end{pmatrix} \begin{pmatrix}
+        x_1 - \mu_1\\ 
+        x_2 - \mu_2
+    \end{pmatrix}\right)\\ 
+    &= \left(\frac{1}{2\pi}\right) \frac{1}{\sqrt{\sigma_1^2 \sigma_2^2}} \,\exp\left(-\frac{1}{2} \left[\frac{(x_1 - \mu_1)^2}{\sigma_1^2} + \frac{(x_2 - \mu_2)^2}{\sigma_2^2}\right]\right)\\
+    &= \frac{1}{\sqrt{2\pi \sigma_1^2}} e^{-(x_1 - \mu_1)^2/(2\sigma_1^2)} \cdot \frac{1}{\sqrt{2\pi \sigma_2^2}} e^{-(x_2 - \mu_2)^2/(2\sigma_2^2)}\\
+    &= f_{\mu_1, \sigma_1}(x_1) \cdot f_{\mu_2, \sigma_2}(x_2)
+\end{align*}
+
+\begin{proposition}
+    \textbf{Proposition:} If $\vec X$ is a set of jointly Gaussian RVs and all their covariances are zero, they are independent. 
+\end{proposition}
+
+As we will see, joint Gaussian RVs have some very nice properties. 
+
+Let $X_1 \sim \Nc(\mu_1, \sigma_1^2)$ and $X_2 \sim \Nc(\mu_2, \sigma_2^2)$ be independent (\emph{Notation:} $X_1 \perp X_2$). What is the distribution of $Z = X_1 + X_2$? 
+
+\begin{tbox}{\textbf{Lemma:} For $X, Y$ independent and $Z = X + Y$, $\Var Z = \Var X + \Var Y$
+}
+    \emph{Proof:} 
+    \begin{align*}
+        \E[Z^2] &= \E[(X - \bar X + Y - \bar Y)^2 ]\\ 
+        &= \E[(X - \bar X)^2] + \E[(Y - \bar Y)^2] + 2\E[(X - \bar X)(Y - \bar Y)]\\
+        &= \Var X + \Var Y + 2 \underbrace{\Cov(X, Y)}_{= 0}\\
+        &= \sigma_1^2 + \sigma_2^2 
+    \end{align*}
+\end{tbox}
+
+\begin{exercise}
+    \textbf{Exercise:} Prove that $Z = X + Y \sim \Nc(\mu_1 + \mu_2, \sigma_1^2 + \sigma_2^2)$
+\end{exercise}
+
+\begin{proposition}
+    \textbf{Proposition:} Let $\vec X, \vec Y$ be jointly Gaussian. Then for $A, B$ linear operators, 
+    \begin{enumerate}
+        \item $Z = A\vec X$ is jointly Gaussian 
+        \item $Z = A \vec X + B \vec Y$ is jointly Gaussian 
+    \end{enumerate}
+\end{proposition}
+
+Let $X \sim \Unif([0, 1]) = u(x) - u(x - 1)$, for $u$ the unit step. 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={1},
+    ytick={1},
+    clip=false,
+    xlabel={$x$},
+    ylabel={$y$},
+    domain=-2:2,
+    ymin=-0.5, ymax=2,
+    xmin= -0.5, xmax=2,
+    view = {0}{90}
+]
+    \addplot[blue] coordinates {(0, 1) (1, 1) (1, 0)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+Now let $Y = X^2$. What is the CDF of $Y$? 
+
+\[F_Y(y) = \P(Y \leq y) = \P(X^2 \leq y) = \P(X \leq \sqrt y) = \sqrt y\]
+hence 
+\[f_Y(y) = \frac{d}{dy} F_Y(y) = \frac{1}{2\sqrt y}\]
+
+\subsection{Stochastic Processes}
+
+\tbf{Recall:} A random variable $X$ is a mapping from event space $X: \Omega \to \R$. 
+
+\tbf{Random process:} A random process is a mapping from event space to functions $X: \omega \mapsto f(t, \omega)$. 
+
+If we know $t$, this is just a random variable. If we know $\omega$, this is a random function. If we know both, this is just a number.
+
+Say we have a graph of Chris' position over time and we want to predict where he will be at time $t$ to throw a dart at him. We can model his position as a random process $X(t)$. 
+
+What are some things we might want to know about this process?
+\begin{itemize}
+    \item $\bar X(t) = \E[X(t)]$ - the expected position at time $t$
+    \item $\Var[X(t)] = \E[X(t) - \bar X(t)]$ - the variance of his position at time $t$
+    \item $\rho_X(t, \tau) = \E[X(t) X(t + \tau)]$ - the correlation of his position at time $t$ and $t + \tau$ (how much does knowing his position at time $t$ tell us about his position at time $t + \tau$?)
+\end{itemize}
+
+\tbf{Remark:} in this class, we will assume all processes are \emph{stationary:} $\rho_X(t, \tau) = \rho(\tau)$ for all $t$.
+
+What we would really like, though, is to know the \tbf{joint distribution} of $X(t_1), \dots, X(t_n)$ for all $n$ and $t_1, \dots, t_n$ with $n$ very large. In theory, this gives us full knowledge of the process. In practice, this is impossible to know, so we will make some assumptions about the process to make it tractable.
+
+\tbf{Stationary Gaussian Process:} $\{X_t: t \in \Z\}$ is a stationary Gaussian process if 
+\begin{enumerate}
+    \item $\E[X(t)] = 0$
+    \item $\E\bigg[\big(X(t) - \E[X(t)]\big)\big(X(t + \tau) - \E[X(t + \tau)]\big)\bigg] = K(\tau)$
+\end{enumerate}
+
+In particular, this means that if we know the mean and covariance function of a stationary Gaussian process, we know the full joint distribution of the process -- precisely what we said was impossible to know in general.
+
+\tbf{White Gaussian Process:} A stationary Gaussian process with 
+\[K_X(\tau) = N_0 \delta(\tau) \E[X(t) X(t + \tau)]\] 
+for $N_0 \in \R$.
+
+Why is it called white? Consider its \tbf{spectral density}
+\[S_X(f) = \F[K_X(\tau)] = \F[N_0 \delta(\tau)] = N_0\] 
+which is constant across all frequencies, hence the name white (like white light which contains all frequencies of visible light).
+
+\section{March 10}
+
+\tbf{Recall:} a jointly Gaussian distribution is given by
+\[\left(\frac{1}{2\pi}\right)^{N/2} \abs{K}^{-1/2} \exp\left(-\frac{1}{2} (\vec x - \vec \mu)^{\top} K^{-1} (\vec x - \vec \mu)\right) \]
+which requires only the mean and the covariance matrix to specify completely (first and second moments).
+
+\begin{align*}
+    R_X(\tau) &= \E[X(t) X(t + \tau)]\\
+    K_X(\tau) &= \E[(X(t) - \mu)(X(t + \tau) - \mu)]\\ 
+    R_{XY}(\tau) &= \E[X(t) Y(t + \tau)]
+\end{align*}
+
+Last time, we started talking about stochastic processes because signals are random due to noise, interference, and other factors. Today, we will start thinking about \emph{communications in the face of noise.}
+
+For a random process, we need to know the joint distribution $f_{X(t_1), \dots, X(t_n)}(x_1, \dots, x_n)$ for all $n$ and $t_1, \dots, t_n$ to completely characterize it (even ignoring the fact that there are uncountably many $t$). This is HARD. But Gaussians are wonderful! 
+
+For a stationary Gaussian process, given $m$ (constant because stationary) and $K(\tau)$, what is $f_{X(t_1), X(t_2)}(x_1, x_2)$?
+
+In particular, what is the relationship between the covariance function $K(\tau)$ and the covariance matrix $K$? 
+
+\[K = \E\left[\begin{pmatrix}
+    X(t_1)\\ X(t_2)
+\end{pmatrix}\begin{pmatrix}
+    X(t_1) & X(t_2)
+\end{pmatrix}\right] = \begin{pmatrix}
+    K(0) & K(t_1 - t_2)\\
+    K(t_2 - t_1) & K(0)
+\end{pmatrix}\]
+(though we have real symmetry, so $K(t_1 - t_2) = K(t_2 - t_1)$)
+
+Then, letting $m = 0$ for simplicity, we have
+\[f_{X(t_1), X(t_2)}(x_1, x_2) = \frac{1}{2\pi} \abs{K}^{-1/2} \exp\left(-\frac{1}{2} \vec x^{\top} K^{-1} \vec x\right)\]
+
+Suppose we input a gaussian process into a linear time-invariant (LTI) system with impulse response $h(t)$. What is the output?
+\[Y(t) = X(t) \star h(t) = \int_{-\infty}^{\infty} X(\tau) h(t - \tau) d\tau \]
+for each $t, \tau$ this is just a linear combination of Gaussian RVs, hence $Y(t)$ is also a Gaussian process. 
+
+What is the mean of $Y(t)$? Let's assume $\E[X(t)] = 0$ and stationary for simplicity. Then
+\[\E[Y(t)] = \int \int X(\tau) h(t - \tau) \; d\tau \, dt = \int h(t - \tau) \E[X(t)] \; d\tau = 0\]
+
+What about the covariance? Changing the variables of integration, 
+\begin{align*}
+    \E[Y(t) Y(t + \tau)] &= \E\left[\left(\int X(\lambda) h(t - \lambda)\; d\lambda\right)\left(\int X(\sigma) h(t + \tau - \sigma)\; d\sigma\right)\right]\\ 
+    &= \E\left[\int \int X(\lambda) X(\sigma) h(t - \lambda) h(t + \tau - \sigma)\; d\sigma d\lambda\right]\\ 
+    &= \E\left[\int \int K_X(\lambda - \sigma) h(t - \lambda) h(t + \tau - \sigma)\; d\lambda\, d\sigma\right]
+\end{align*}
+since
+\[K_X(\tau) = \textcolor{red}{\E[X(t_1) X(t_2)]} = \E[X(t_1) X(t_1 + \underbrace{(t_2 - t_1)}_{\tau})] = K_X(t_2 - t_1)\] 
+
+Now, if we further assume this is a white Gaussian process ($K_X(\lambda - \sigma) = N_0 \delta(\lambda - \sigma)$), then
+\begin{align*}
+    \E[Y(t) Y(t + \tau)] &= \dots\\ 
+    &= \E\left[\int \int K_X(\lambda - \sigma) h(t - \lambda) h(t + \tau - \sigma)\; d\lambda\, d\sigma\right]\\ 
+    &= N_0 \int h(t - \sigma) h(t + \tau - \sigma) \; d\sigma\\ 
+    &= K_Y(\tau)
+\end{align*}
+
+Is this actually a function of $t$? Yes. Consider $z = t - \sigma$ then for all $t$, 
+\[K_Y(\tau) = N_0 \int h(z) h(z + \tau)\; d\tau \implies \text{ still stationary (only the offset changes)}\]
+
+\subsection{Signalling} 
+
+Define a signalling interval $(0, T)$. We will send a single bit of information $b \in \{-1, 1\}$. 
+
+Sent through the channel, we receive $y(t)$ and want to do some magic to recover $\hat b$ as accurately as possible.
+
+We can model the channel as adding a stationary, white, zero-mean noise $w(t)$ (that is, $\E[w(t)w(t + \tau)] = N_0 \delta(\tau)$) to the signal, so
+\[y(t) = x(t) + w(t)\]
+
+Our ability to decode the message then clearly depends on how large the noise $w$ is. 
+
+Let's put $y(t)$ into an LTI with impulse response $h(t)$, outputting $z(t)$. We will sample $z(T)$ to decide if $\hat b = -1$ or $\hat b = 1$. 
+
+\[y(t) = bx(t) + w(t) \implies z(t) = \underbrace{b \int x(\tau) h(t - \tau)\; d\tau}_{\text{info}} + \int w(\tau) h(t + \tau)\; d\tau\]
+so 
+\[z(T) = \int_0^T x(\tau) h(T - \tau)\; d\tau + \int_0^T w(\tau)h(T - \tau) \; d\tau\]
+
+We know that both are zero in expectation so how can we measure the relative sizes of each? 
+
+\tbf{Signal to noise ratio (SNR):} 
+\begin{align*}
+    \text{SNR} &= \frac{\E\left[\left(b \int_0^T x(\tau) h(T - \tau)\; d\tau\right)^2\right] }{\E\left[\left(\int_0^T w(\tau) h(T - \tau)\; d\tau\right)^2\right] }\\ 
+    &= \frac{\left(\int_0^T x(\tau) h(T - \tau)\; d\tau\right)^2 \E[b^2]}{\E\left[\int \int w(\tau) w(\lambda) h(T - \tau) w(T - \lambda) \; d\tau\, d\lambda\right]}\\ 
+    &= \frac{\left(\int_0^T x(\tau) h(T - \tau)\; d\tau\right)^2}{\int_0^T \int_0^T N_0 \delta(\tau - \lambda) h(T - \tau) h(T - \lambda)\; d\tau\, d\lambda}\\ 
+    &= \frac{\left(\int_0^T x(\tau) h(T - \tau)\; d\tau\right)^2}{N_0 \int_0^T h^2(T - \lambda)\; d\lambda}\\ 
+\end{align*}
+where $\Ec_h = N_0 \int_0^T h^2(T - \lambda)\; d\lambda$ is the \tbf{energy} of $h$ (integral of a square!) 
+
+In particular, this means we want to find an $h$ to maximize this ratio. 
+
+We know 
+\[\left(\int_0^T x(\tau) h(T - \tau)\; d\tau\right)^2 \leq \left(\int_0^T x^2(\tau)\; d\tau\right)\left(\int_0^T h^2(T - \tau)\; d\tau\right)\]
+by Cauchy-Schwarz. 
+
+\begin{proposition}
+    \textbf{Cauchy-Schwarz:} 
+    \[\left(\int x(t) y(t)\right)^2 \leq \left(\int \abs{x(t)}^2\; dt\right)\left(\int \abs{y(t)}^2\; dt\right)\]
+    with equality iff $x(t) \propto y(t)$.  
+\end{proposition}
+
+And since we want to maximize the numerator, we want equality. That is, the optimal $h$ is precisely $h(t - \tau) = \alpha x(\tau)$ for $\alpha \in \R$. In which case, 
+
+\[\max\, \text{SNR} = \frac{\left(\int_0^T x^2(\tau)\; d\tau\right) \alpha^2 \int_0^T x^2(\tau)\; d\tau}{N_0 \alpha^2 \int x^2(\tau)\; d\tau} = \frac{\int_0^T x^2(\tau)\; d\tau}{N_0} = \frac{\Ec_x}{N_0}\]
+
+Hence, which LTI system maximizes SNR? Precisely the \emph{matched filter} which scales a flipped version of $x$, resulting in an SNR equal to the quotient of the energy in $x$ and the inherent noise level. 
+
+This means that we don't need to spend much time designing a careful $x$: we just want to maximize energy! 
+
+Recall 
+\[z(T) = \int_0^T x(\tau) h(T - \tau)\; d\tau + \int_0^T w(\tau)h(T - \tau) \; d\tau\]
+now with the matched filter $h(T - \tau) = x(\tau)$, 
+\[Z(T) = b \Ec_x + W\]
+with $W = \int_0^T w(\tau) h(T - \tau)\; d\tau \sim \Nc(0, N_0 \Ec_x)$
+\[\E[W^2] = \E[\int_0^T \int_0^T w(\tau) w(\lambda) x(\tau) x(\lambda)\; d\tau \, d\lambda] = N_0 \Ec_x\]
+
+If $b = 1$, what does $Z(T)$ look like? 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-2, 2},
+    xticklabels={$-b\Ec_x$, $b\Ec_x$},
+    ytick=\empty,
+    clip=false,
+    xlabel={$x$},
+    ylabel={$y$},
+    ymin=0, ymax=2,
+    xmin= -5, xmax=5,
+    view = {0}{90}
+]
+    \addplot[blue, samples=100] {exp(-5*(x-2)^2)} node[above] at (axis cs:2,1) {$f_{X\; | \; b = 1}$};
+    \addplot[blue, samples=100] {exp(-5*(x+2)^2)} node[above] at (axis cs:-2,1) {$f_{X \; | \; b = -1}$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+as we will see, if we sample at $Z(T)$, we will then be very likely to correctly decode $b$ as $1$ or $-1$ depending on the marginals. 
+
+What if the distributions are more closely overlapping or not so simple? This will be our focus moving forward.
 
 
 \end{document}
