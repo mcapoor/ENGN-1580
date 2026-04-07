@@ -23,6 +23,7 @@
 \usepackage{tikz-cd}
 \usepackage{circuitikz}
 \usepackage{multirow}
+
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{intersections, decorations.markings, decorations.pathmorphing, patterns}
  \usepgfplotslibrary{fillbetween}
@@ -50,6 +51,7 @@
 }
 
 \colorlet{mygreen}{green!50!teal}
+\colorlet{darkblue}{blue!60!black}
 
 \newcommand{\ans}[1]{\boxed{\text{#1}}}
 \newcommand{\vecs}[1]{\langle #1\rangle}
@@ -71,6 +73,8 @@
 \newcommand{\ket}[1]{\left\vert #1 \right\rangle}
 
 \newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\norm}[1]{\left\vert \left\vert #1 \right\vert \right\vert}
+
 \newcommand{\mfX}{\mathfrak{X}}
 \newcommand{\ep}{\varepsilon}
 
@@ -1709,7 +1713,7 @@ where the box represents a \tbf{convolution}:
 
 So far $m(t)$ has been a continuous-time signal. How do we represent it in the digital regime?
 
-We assumed the spectrum of $m(t)$ is bandlimited to $B$ Hz. How do we represent 
+We assumed the spectrum of $m(t)$ is band-limited to $B$ Hz. How do we represent 
 \[m(t) \to \{m_1, m_2, \dots\}\] 
 a set of samples? (And especially a set of samples that we can use to reconstruct $m(t)$?)
 
@@ -2225,7 +2229,7 @@ As we will see, our error function is \emph{convex}.
     Notice that from the definition of the CDF, we have 
     \[F_X(x) = \int_{-\infty}^x f_X(y)\; dy \iff f_X(x) = \frac{d}{dx} F_X(x)\]
     
-    \tbf{Joint Random Vairables:} Let $X, Y$ be two random vairables with joint pdf $f_{X, Y}(x, y)$ satisfying
+    \tbf{Joint Random Variables:} Let $X, Y$ be two random variables with joint pdf $f_{X, Y}(x, y)$ satisfying
     \begin{enumerate}
         \item $\int \int f_{X, Y}(x, y)\; dx\, dy = 1$
         \item $f_{X, Y}(x, y) \geq 0$ for all $x, y$.
@@ -2721,5 +2725,929 @@ as we will see, if we sample at $Z(T)$, we will then be very likely to correctly
 
 What if the distributions are more closely overlapping or not so simple? This will be our focus moving forward.
 
+\section{March 12}
+
+\tbf{Quick review:} For a Gaussian random process $w(t)$, a particular sample $w(t_i) \sim \Nc(\mu(t), K(t, \tau))$. If we know the process is stationary, then $w(t_i) \sim \Nc(\mu, K(\tau))$ (only depends on the offset $\tau$).
+
+What do we know about two samples $w(t_1), w(t_2)$? They are jointly Gaussian. And indeed, any finite collection of samples $w(t_1), \dots, w(t_n)$ are jointly Gaussian.
+
+Last time, we combined the entire course thus far to derive the optimal filter for decoding a bit sent through a noisy channel: 
+
+\begin{center}
+\begin{tikzpicture}
+    \node (m) at (0, 0) {$m(t)$}; 
+    \node[draw, rectangle] (s) at (3, 0) {Sampler};
+    \node (mk) at (7, 0) {$\{m_1, m_2, \dots, m_k\}$}; 
+    \node[draw, rectangle] (q) at (10, 0) {Q};
+    \node (b) at (13, 0) {bits $b_1, \dots, b_k$};
+
+    \draw[->] (m) -- (s.west);
+    \draw[->] (s.east) -- (mk);
+    \draw[->] (mk) -- (q.west);
+    \draw[->] (q.east) -- (b);
+\end{tikzpicture}
+\end{center}
+where the sampler is lossless but the quantizer is not (pigeonhole principle).
+
+Now we want to transmit a but $b \in \{-1, 1\}$. We multiply by a carrier $x(t)$ and transmit through a noisy channel to receive $r(t) = b x(t) + w(t)$ where $w(t)$ is a stationary, white Gaussian process with power spectral density $N_0$.
+
+\begin{center}
+\begin{tikzpicture}
+    \node (y) at (0, 0) {$bx(t) + w(t)$}; 
+    \node (r) at (3, 0) {$r(t)$}; 
+    \node[draw, rectangle] (h) at (5, 0) {magic}; 
+    \node (b) at (7, 0) {$\hat b$};
+
+    \draw[->] (y) -- (r);
+    \draw[->] (r) -- (h.west);
+    \draw[->] (h.east) -- (b);
+\end{tikzpicture}
+\end{center}
+Our job is to find a system that will decode $r(t)$ to recover $\hat b$. 
+
+Last time, we started with the assumption that the ``magic system'' is an LTI with impulse response $h(t)$. Motivated by trying to maximize the signal to noise ratio, we found that the optimal $h$ is precisely the matched filter $h(t) = x(T - t)$ which results in an SNR of $\Ec_x/N_0$ where $\Ec_x$ is the energy of $x$.
+
+\begin{center}
+\begin{tikzpicture}
+    \node (y) at (0, 0) {$bx(t) + w(t)$}; 
+    \node[draw, rectangle] (h) at (5, 0) {$h(t) = x(T - t)$}; 
+    \node[below] at (h.east) at (7, 0) {$y(t)$};
+    \node (T) at (9, 0) {$y(T)$};
+    
+    \draw[->] (y) -- (h.west); 
+    \draw (h.east) -- ++(0.5, 0) -- ++(0.5, 0.5);
+    \draw (T) -- ++(-1, 0);
+
+    
+\end{tikzpicture}
+\end{center}
+
+Coming out of the matched filter and sampling $y(T)$, we get
+\[b \int x(\tau) h(T - \tau)\; d\tau+ \int w(\tau) h(T - \tau)\; d\tau = b \Ec_x + \int w(\tau) x(\tau)\; d\tau\] 
+
+Another way to diagram this system is with a \tbf{correlator:}
+\begin{center}
+\begin{tikzpicture}
+    \node (y) at (0, 0) {$bx(t) + w(t)$}; 
+    \node[draw, circle] (x) at (2, 0) {$\times$}; 
+    \node at (2, -1) {$x(t)$};
+    \node[draw, rectangle] (i) at (4, 0) {$\int_0^T$}; 
+    \node (r) at (10, 0) {$R = b\int_0^T x^2(t)\; dt + \int_0^T w(t) x(t)\; dt = b\Ec_x + W$};
+
+    \draw[->] (y) -- (x.west);
+    \draw[->] (x.east) -- (i.west);
+    \draw[->] (i.east) -- (r);
+
+
+\end{tikzpicture}
+\end{center}
+
+Last time, we saw that the noise term $W \sim \Nc(0, N_0 \Ec_x)$.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-2, 2},
+    xticklabels={$-b\Ec_x$, $b\Ec_x$},
+    ytick=\empty,
+    clip=false,
+    xlabel={$r$},
+    ylabel={},
+    ymin=0, ymax=2,
+    xmin= -5, xmax=5,
+    view = {0}{90}
+]
+    \addplot[blue, samples=100] {exp(-(x-2)^2)} node[above, right] at (axis cs:2,1) {$f_{R|b = 1}(r \; | \; b = 1)$};
+    \addplot[blue, samples=100] {exp(-(x+2)^2)} node[above, left] at (axis cs:-2,1) {$f_{R|b = -1}(r \; | \; b = -1)$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+Now (assuming $\P(b = 1) = \P(b = -1) = 1/2$), we can create a decision boundary at $r = 0$, so if $r > 0$ we decode $\hat b = 1$ and if $r < 0$ we decode $\hat b = -1$, reflecting which distribution is more likely to have generated a sample at $r$.
+
+How do we formalize this? 
+
+Let $\P(b = 1) = p$ and $\P(b = -1) = 1 - p$. Then, given $f_{R|b=1}(r | b=1)$ and $f_{R|b=-1}(r | b=-1)$, we define a decision rule 
+\[ \begin{cases}
+    d \in \mathcal D & \hat b = 1\\ 
+    d \in \mathcal D^c & \hat b = -1
+\end{cases}\]
+
+Our problem now is to find the optimal decision rule $\mathcal D$ to minimize the probability of error $\P(\hat b \neq b)$: 
+\[\min_{\mathcal D} P_e = \min_{\mathcal D} \left[\P(\hat b = 1 \; | \; b = -1) (1- p) + \P(\hat b = -1 \; | \; b = 1) (p)\right]\]
+where 
+\begin{align*}
+    \P(\hat b = 1 \; | \; b = -1) &= \int_{\mathcal D} f_{R | b = -1}(r | b = -1)\; dr\\ 
+    \P(\hat b = -1 \; | \; b = 1) &= \int_{\mathcal D} f_{R | b= 1} (r | b = 1)\; dr
+\end{align*}
+hence  
+\begin{align*}
+    P_e &= (1 - p)\int_{\mathcal D} f_{R | b = -1}(r | b = -1)\; dr + p \int_{\mathcal D} f_{R | b= 1} (r | b = 1)\; dr\\ 
+    &= (1 - p)\int_{\mathcal D} f_{R | b = -1}(r | b = -1) + p \left(1 - \int_{\mathcal D} f_{R | b = 1}(r | b = 1)\right) \\ 
+    &= p + \int_{\mathcal D} (1 - p) f_{R | b= -1} (r | b = -1) - p f_{R | b=1}(r | b=1)\; dr
+\end{align*}
+which is minimized precisely when 
+\[\frac{p f_{R | b=1}(r | b=1) }{(1 - p) f_{R | b= -1} (r | b = -1)} > 1\]
+
+giving us the new decision boundaries 
+\[\begin{cases}
+    \frac{p f_{R | b=1}(r | b=1) }{(1 - p) f_{R | b= -1} (r | b = -1)} > 1 & \hat b = 1\\ 
+    \frac{p f_{R | b=1}(r | b=1) }{(1 - p) f_{R | b= -1} (r | b = -1)} < 1 & \hat b = -1
+\end{cases}\]
+
+this is a \tbf{likelihood ratio test}, and as we will see, it is optimal. 
+
+In the case $p = (1 - p) = 1/2$, this reduces to $\hat b = 1$ if $f_{R | b = 1} > f_{R | b= -1}$ which matches our intuition! 
+
+This leads to a reasonable next question: what is our error using this test? 
+
+Precisely $\P(\hat b = -1 | b= 1)$:
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-2, 2},
+    xticklabels={$-\Ec_x$, $\Ec_x$},
+    ytick=\empty,
+    clip=false,
+    xlabel={$r$},
+    ylabel={},
+    ymin=0, ymax=2,
+    xmin= -5, xmax=5,
+    view = {0}{90}
+]
+    \addplot[name path=y1, blue, samples=100] {exp(-1/4*(x-2)^2)};
+    \addplot[name path=y2, red, samples=100] {exp(-1/4*(x+2)^2)}; 
+    %\addplot[fill beneath thinking]
+    % shade intersection 
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+For simplicity, let $p  = 1 - p = 1/2$, so 
+\begin{align*}
+    P_e &= \P(\hat b = 1 \; | \; b= -1)\\ 
+    &= \int_0^{\infty} \frac{1}{\sqrt{2\pi \Ec_x N_0}} \exp\left(\frac{-(\xi + \Ec_x)^2}{}2\Ec_x/N_0\right) \; \xi \\ 
+    &= \int_{\Ec_x}^{\infty} \frac{1}{\sqrt{2\pi \Ec_x N_0}} \exp\left(-u^2 / 2\Ec_x N_0\right)\; du\\ 
+    &= \int_{\sqrt{\Ec_x/N_0}}^{\infty} \frac{1}{2\pi} \exp(-u^2/2)\; du 
+\end{align*}
+
+which is to say, \emph{the probability of error depends only on the SNR.}
+
+\section{March 17 - Quiz II Review}
+
+Suppose we want to sample a message $m(t)$ 
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (5, 0);
+    \draw (3, 0) -- ++(0, 2);
+    \draw[blue] (2, 0) arc (180:0:1) node[midway, above right] {$M(f)$};
+\end{tikzpicture}
+\end{center}
+
+A reasonable way to discretize this message is to hit it with some evenly spaced delta functions 
+
+\[s(t) = \sum_k m(Tk) \delta(t - Tk)\]
+
+How small should $T$ be to ensure we can reconstruct $m(t)$ from these samples?
+
+In the frequency domains, this looks like 
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (10, 0);
+
+    \foreach \x in {1, 3, 5, 7} {
+        \draw[blue] (\x, 0) arc (180:0:0.7);
+        \draw (\x+0.7, 0.25) -- ++(0, -0.5) node[below] {\x/T};
+    } 
+
+\end{tikzpicture}
+\end{center}
+where each copy of $M(f)$ spans $[k/T - B, k/T + B]$ for the bandwidth $B$ of the original message.
+
+Since we want these copies not to overlap, we need $1/T - B > B$ so $T < 1/2B$. This is the \tbf{Nyquist criteria}.
+
+Let's low pass filter to $[-B, B]$ to get rid of the copies: 
+\[\sum_k m(Tk) \delta(t - Tk) \star h(t)\]
+
+We've drawn over and over a LPF $H(f)$ 
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (5, 0);
+    \draw (2.5, 0) -- ++(0, 2);
+
+    \draw[blue] (1, 0) -- (1, 1) -- (4, 1) -- (4, 0);
+    \node[below] at (1, 0) {$-B$};
+    \node[below] at (4, 0) {$B$};
+
+\end{tikzpicture}
+\end{center}
+
+but what does this look like in the time domain? We know it's a sinc but let's derive it.
+
+\begin{align*}
+    h(t) &= \F^{-1}(H(f))\\ 
+    &= \int_{-\infty}^{\infty} H(f) e^{j 2\pi ft} df\\ 
+    &= \int_{-B}^{B} e^{j 2\pi ft} df\\ 
+    &= \frac{e^{j 2\pi Bt} - e^{-j 2\pi Bt}}{j 2\pi t}\\ 
+    &= \frac{\sin(2\pi Bt)}{\pi t}\\ 
+    &= \frac{\sin(\pi t / T)}{\pi t}
+\end{align*}
+
+Hence, 
+\begin{align*}
+    \hat m(t) &= \sum_k m(Tk) \delta(t - Tk) \star \frac{\sin(\pi t / T)}{\pi t} \\ 
+    &= \sum_k m(Tk) \frac{\sin(\pi (t - Tk) / T)}{\pi (t - Tk) / T}
+\end{align*}
+(integrals of delta functions!)
+
+Now we have successfully sampled but we still need to choose what to transmit. Let's quantize to save some space. 
+
+Let $Q(x)$ be an n-level uniform quantizer.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.5\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={},
+    ylabel={},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+    view = {0}{90}
+]
+    \draw[dashed, opacity=0.7] (2, 1) -- (-2, 1) node[left] {$q_4$};
+    \draw[dashed, opacity=0.7] (2, 0.5) -- (-2, 0.5) node[left] {$q_3$};
+    \draw[dashed, opacity=0.7] (2, 0) -- (-2, 0) node[left] {$q_2$};
+    \draw[dashed, opacity=0.7] (2, -0.5) -- (-2, -0.5) node[left] {$q_1$};
+    \draw[dashed, opacity=0.7] (2, -1) -- (-2, -1) node[left] {$q_0$};
+
+    \draw[dashed, opacity=0.7] (2, 1) -- (-2, 1) node[left] {$q_4$};
+    \draw[dashed, opacity=0.7] (2, 0.5) -- (-2, 0.5) node[left] {$q_3$};
+    \draw[dashed, opacity=0.7] (2, 0) -- (-2, 0) node[left] {$q_2$};
+    \draw[dashed, opacity=0.7] (2, -0.5) -- (-2, -0.5) node[left] {$q_1$};
+    \draw[dashed, opacity=0.7] (2, -1) -- (-2, -1) node[left] {$q_0$};
+
+    \draw[dashed, opacity=0.7] (-0.75, 2) -- (-0.75, -2) node[below] {$x_0$};
+    \draw[dashed, opacity=0.7] (-0.25, 2) -- (-0.25, -2) node[below] {$x_1$};
+    \draw[dashed, opacity=0.7] (0.25, 2) -- (0.25, -2) node[below] {$x_2$};
+    \draw[dashed, opacity=0.7] (0.75, 2) -- (0.75, -2) node[below] {$x_3$};
+
+    \addplot[thick, blue] coordinates { (-2, -1) (-0.75, -1) (-0.75, -0.5) (-0.25, -0.5) (-0.25, 0) (0.25, 0) (0.25, 0.5) (0.75, 0.5) (0.75, 1) (2, 1)} node[above left] {$Q(m)$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\[Q(m_k) = q_{n_k}, \st m_k \in [x_{n_k-1}, x_{n_k}]\]
+
+Note in particular that an $N$-level quantizer will have $N - 1$ quantization boundaries $x_0, \dots, x_{N - 2}$ and $N$ quantized values $q_0, \dots, q_{N-1}$. In general, we set $N = 2^n$ for some $n \in \N$ to be able to encode each quantized value as an n-bit string.
+
+We then generate a lookup table to encode each quantized value as a bit string. Say, 
+
+\begin{center}
+    \begin{tabular}{c|c}
+        $Q(m_k)$ & $b_{n_k}$\\ 
+        \hline
+        $q_0$ & 000\\ 
+        $q_1$ & 001\\ 
+        $q_2$ & 010\\ 
+        $q_3$ & 011\\ 
+        $q_4$ & 100\\
+    \end{tabular}
+\end{center}
+
+If we choose the $q_k$ and $x_k$ poorly, we might overuse some quantized values and under use others, leading to inefficient use of our bit budget (and loss of resolution). 
+
+How should we choose the $q_k$ and $x_k$ optimally? 
+
+\tbf{Lloyd Max:} 
+\begin{enumerate}
+    \item $x_n = \frac{q_n + q_{n - 1}}{2}$ (quantization boundaries are midpoints of quantized values)
+    \item $q_n = \E[m \; | \; M \in (x_{n - 1}, x_n)]$ (quantized values are means of bits in the quantization regions)
+\end{enumerate}
+
+Now, we have a sequence of bits $m_k \mapsto Q(m_k) \mapsto b_{n_k}$ corresponding to the quantized values of the message ($n_k \in 0, \dots, n-1$).
+
+In particular, for an optimal quantizer $Q(q_{0:n-1}, x_{0:n-2})$, we have that the sequence of quantization levels $q_{0:n-1}$ and quantization boundaries $x_{0:n-2}$ are monotonic increasing but the transmitted bits $b_{n_0}, \dots, b_{n_{k-1}}$ are not. 
+
+Now we have a sequence of bits to transmit, but we know the channel is noisy. How do we encode these bits to be robust to noise?
+
+Let $b\in \{-1, 1\}$ be a single bit we want to transmit on the carrier wave $x(t)$. Assuming Gaussian white noise interference $w(t)$ ($K(\tau) = N_0 \delta(t - \tau)$), we receive 
+\[r(t) = bx(t) + w(t)\]
+
+We can demodulate by multiplying by $x(t)$ as in coherent demodulation and then running the signal through a \tbf{correlator} (or equivalently, a matched filter) to get
+\[R = \int_0^T r(t) x(t) \; dt = \int_0^T bx^2(t)\; dt + \int_0^T w(t) x(t)\; dt = b \Ec_x + W\]
+where $W \sim \Nc(0, N_0 \Ec_x)$ is the noise term (to see why $W$ is Gaussian, think of the Riemann sum representation of the integral).
+
+\section{March 31} 
+
+Remember that at the very beginning of the course we arbitrarily decided to transmit messages $m(t)$ by multiplying with carrier waves $\cos 2\pi f_c t$. We got ``put in a box'' by choosing either AM or PM. 
+
+Later, we said that the $m(t)$ to bit stream mapping should be sampling and quantization and our bits should be binary $b \in \{-1, 1\}$ modulated again by a carrier $b x(t)$. On the receiving end, we demodulate with a correlator and a decision rule. We motivated the correlator by showing that it maximizes the SNR among all LTI systems. Why did we make these choices? Why should our demodulation be an LTI? Does it really not matter what the message looks like? 
+
+Notice that we have always assumed the message was constant over the signalling interval $[0, T]$. What if we want to transmit a message that changes over time? (Even something as simple as two whistles in sequence) 
+
+Consider an arbitrary signal $x(t)$ on $[0, T]$. From sampling, we could try to represent this signal as a bit stream but since it is time-limited, its spectrum is not band-limited. We could try some approximation methods to get a band-limited signal but this is not ideal.
+
+Take a set $\{x(k \Delta)\} = \{x(0), \dots, x((N-1)\Delta)\}$ of samples of $x(t)$ at some sampling rate $\Delta$. Alternatively, we could view this signal as a vector $\vec y = (x(0), \dots, x((N-1)\Delta))$ in $\R^N$.
+
+\tbf{Orthogonal:} $\vec y \perp \vec z$ are orthogonal if 
+\[\vec y \cdot \vec z = \sum_i y_i z_i = \vec y^{\top} \vec z\]
+
+\tbf{Remark:} in this class we will always assume vectors are column vectors so our inner product is $x^\top y$ and our outer product is $xy^\top $
+
+Define the inner product on functions: 
+\[\brak{ y(t), z(t)} = \int_0^T y(t) z*(t)\; dt\]
+(for $z*$ the complex conjugate of $z$)
+
+\emph{Example:} are $\cos 2 \pi t$ and $\sin 2\pi t$ orthogonal on $(0,1)$?
+
+We could either integrate with trig identities or just look at the graphs and make some symmetry and sign arguments to see that 
+\[\int_0^1 \cos (2 \pi t) \sin (2\pi t) \; dt = 0\]
+    
+Consider these two functions 
+\begin{center}
+    
+\begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        no markers,
+        xtick={1},
+        xticklabels={$T$},
+        ytick=\empty,
+        clip=false,
+        xlabel={$x$},
+        ylabel={$y$},
+        domain=0:1,
+        ymin=0, ymax=2,
+        xmin=0, xmax=2,
+        view = {0}{90}
+    ]
+
+    \addplot[blue] {1}; 
+        
+    \end{axis}
+    \end{tikzpicture}
+    \hspace{1cm}
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=0.3\textwidth,
+        axis lines=middle,
+        no markers,
+        xtick={1},
+        xticklabels={$T$},
+        ytick=\empty,
+        clip=false,
+        xlabel={$x$},
+        ylabel={$y$},
+        domain=0:2,
+        ymin=-2, ymax=2,
+        xmin=0, xmax=2,
+        view = {0}{90}
+    ]
+
+    \addplot[blue] coordinates {(0, 1) (0.5, 1) (0.5, -1) (1, -1) }; 
+        
+    \end{axis}
+    \end{tikzpicture}
+\end{center}
+
+By exactly the same argument, we multiply and the areas cancel so the functions are orthogonal.
+
+Thinking about $y$ and $z$ as vectors, this functional inner product can be thought of as a projection 
+
+If $x_1$ and $x_2$ are two vectors which are not orthogonal, it's not so easy to represent an arbitrary point as a linear combination of the two vectors; we want to \emph{orthogonalize} 
+
+First normalize $x_1$ and call it $\phi_1 = x_1/\abs{x_1}$ 
+(where $\abs u^2 = \brak{u, u}$). 
+
+Then we can project $x_2$ onto the $\phi_1$ via $\brak{x_2, x_1/\abs{x_1}}$
+
+Defining 
+\[\phi_2 = \frac{x_2 - \brak{ x_2, \phi_1}}{\abs{x_2 - \brak{x_2, \phi_1}}}\]
+
+and by construction $\phi_1 \perp \phi_2$ and form an orthonormal basis (orthogonal, normalized, and spanning). This is the \tbf{Gram-Schmidt Process}. 
+
+For three vectors, we can repeat the process once in each plane. 
+
+\begin{tbox}{\textbf{Gram-Schmidt Process:} }
+    In general, for $x_1, \dots, x_N$
+    \begin{align*}
+        \phi_1 &= x_1/\abs{x_1}\\
+        \phi_2 &= \frac{x_2 - \brak{x_2, \phi_1} \phi_1}{\abs{x_2 - \brak{x_2, \phi_1}}}\\
+        \phi_k &=  \frac{x_k - \sum_{j=1}^{k-1} \brak{x_k, \phi_j} \phi_j}{\abs{x_k - \sum_{j=1}^{k-1} \brak{x_k, \phi_j} \phi_j}}
+    \end{align*}
+\end{tbox}
+
+Of course, we could do exactly the same thing for functions $x_1(t), \dots, x_N(t)$
+
+\[\phi_k =  \frac{x_k(t) - \sum \left( \int x_k(\tau) \phi_j^*(\tau) d\tau\right) \phi_j(t)}{\abs{x_k(t) - \sum \left( \int x_k(\tau) \phi_j^*(\tau) d\tau\right) \phi_j(t)}}\]
+
+with this underlying representation, it is easy to show that we can write any function $x(t)$ by 
+\[x(t) = \sum_{\ell} x_{\ell} \phi_{\ell}(t)\]
+where $\phi_{\ell}$ collectively form an orthonormal basis 
+
+Now for arbitrary functions $\phi_1, \phi_2$ and point $p$, we can write the point in our new basis as $(\brak{ p, \phi_1}, \brak{p, \phi_2})$
+
+Returning to our first example: Consider the functions
+\begin{align*}
+    q_1(t) &= \cos 2 \pi t\\
+    q_2(t) &=\sin 2 \pi t 
+\end{align*}
+on $t\in (0,1)$.
+
+We have 
+\[\abs{q_1(t)}=\int_0^1 \cos^2(2\pi t) dt = \frac{1}{2}\]
+and similarly for $\abs{q_2}$ so our orthonormal basis is 
+\begin{align*}
+    \phi_1(t)&=\sqrt 2 \cos 2 \pi t\\
+    \phi_2(t)&=\sqrt 2 \sin 2 \pi t  
+\end{align*}
+meaning we can write 
+\[x(t) = a \phi_1(t) + b \phi_2(t) \]
+that is, we have represented a function (or equivalently a message) as a point in signal space!! 
+
+Recall the \tbf{Fourier Series} representation of a periodic function on $(0, T)$
+\begin{align*}
+    x_k &= \frac 1 T \int_{-T/2}^{T/2} x(t) \exp\left(- j \frac{2\pi k t}{T}\right) dt \\
+    x(t) &= \sum_k  \frac{x_k}{\sqrt{T}} \exp\left(j \frac{2\pi k t}{T}\right)
+\end{align*}
+
+and since 
+\begin{align*}
+    \brak{\exp\left(j \frac{2\pi k t}{T}\right), \exp\left( j \frac{2\pi \ell t}{T}\right)} &= \int_{-T/2}^{T/2} \exp\left(j \frac{2\pi k t}{T}\right) \cdot \exp\left(- j \frac{2\pi \ell t}{T}\right)\\ 
+    &= \int_{-T/2}^{T/2} \exp\left(j \frac{2\pi t}{T} (k -\ell)\right) dt 
+\end{align*}
+
+is just a sinusoid integrated over a period, 
+\[= \begin{cases}
+    0 & k \neq \ell \\
+    T & else 
+    \end{cases} \]
+(notice the complex conjugate in the inner product) 
+
+In particular, this means that the fourier series is secretly just representing a function in an orthonormal basis! 
+
+All together, for $x(t) = a \phi_1(t) + b \phi_2(t) $
+
+\begin{align*}
+    \brak{x(t), x(t)} &= \int x(t) x^*(t) dt \\
+    &= \int (a \phi_1(t) + b \phi_2(t)) (a^* \phi_1^*(t) + b^* \phi_2^*(t) ) dt \\
+    &= \abs{a}^2 + \abs{b}^2
+\end{align*}
+which gives us a very easy way to calculate the energy of the signal 
+
+Returning to the comms system, this will mean that we can design a receiver with rails based on an orthonormal basis and be able to handle a large class of signals
+
+\section{April 2} 
+
+Last time, we introduced the Gram-Schmidt process to orthogonalize a set of functions and represent an arbitrary signal as a point in signal space.
+
+The basic idea is we map 
+\[x_1(t), \dots, x_N(t) \to \{\phi_q(t)\}_{q=1:Q}\]
+(with $Q \leq N$) for $\phi_q$ orthonormal (i.e. $\brak{\phi_k, \phi_\ell} = \delta_{k\ell}$) and then we can write 
+\[x_m(t) = \sum_{q=1}^Q \underbrace{\brak{x_m(t), \phi_q(t)}}_{\alpha_q} \phi_q(t)\]
+or equivalently, $x_m = (\alpha_1, \dots, \alpha_Q)^{\top}$ in the $\phi$ basis with
+\[\brak{x_m(t), x_m(t)} = \norm{x(t)} = \sum_{q=1}^Q \abs{\alpha_q}^2 = \Ec\]
+
+Consider the very simple example $x_1(t) = 1$ and $x_2(t) = 0$. We can write 
+\begin{align*}
+    x_1(t) &= x_{11} \phi_1(t) + x_{12} \phi_2(t)\\
+    x_2(t) &= x_{21} \phi_1(t) + x_{22} \phi_2(t)
+\end{align*}
+as two points $(x_{11}, x_{12})$ and $(x_{21}, x_{22})$ in signal space.
+
+Now we want to be able to transmit either signal and receive them accurately with the same receiver. 
+
+Let $x_i(t) \in \{x_1(t), x_2(t)\}$ be the signal we want to transmit. After noise, we receive $x_i(t) + w(t)$ (white noise with spectral height $N_0$) and send it through a dual correlator receiver:
+\begin{center}
+\begin{tikzpicture}
+    \node (x) at (-1, 0) {$x_i(t) + w(t)$}; 
+
+    \node[draw, circle] (x1) at (3, 2) {$\times$}; 
+    \draw (x1) -- ++(1, 0) node[right, draw, rectangle] (c1)  {$\int$};
+    \draw (c1) -- ++(1, 0) node[right]  {$r_1$};
+    \draw[<-] (x1.north) -- ++(0, 1) node[above] {$\phi_1(t)$};
+
+
+    \node[draw, circle] (x2) at (3, -2) {$\times$}; 
+    \draw (x2) -- ++(1, 0) node[right, draw, rectangle] (c2) {$\int$};
+    \draw (c2) -- ++(1, 0) node[right] {$r_2$}; 
+    \draw[<-] (x2.south) -- ++(0, -1) node[below] {$\phi_2(t)$};
+
+    \draw[->] (x.east) -- ++(1.5, 0) |- (x1);
+    \draw[->] (x.east) -- ++(1.5, 0) |- (x2);
+    \node[above] at (1, 0) {$r(t)$};
+
+\end{tikzpicture}
+\end{center}
+
+We know 
+\begin{align*}
+    r_1 &= \brak{x_m(t), \phi_1(t)}\\ 
+    &= \int x_m(t) \phi_1^*(t) dt\\
+    &= \int \left(x_{m1} \phi_1(t) + x_{m2}\phi_2(t)\right)  \phi_1^*(t) \; dt\\ 
+    &= x_{m1}
+\end{align*}
+
+So coming out of the correlator, we get 
+\begin{align*}
+    \brak{r(t), \phi_{\ell}(t)} &= x_{m\ell} + \underbrace{\int_0^T w(t) \phi_{\ell}^*(t) dt}_{W_{\ell}}\\
+\end{align*}
+with $W_{\ell}$ a Gaussian.
+
+We want to completely characterize the noise so need the mean and covariance: 
+\begin{align*}
+    \E[W_{\ell}] &= 0\\ 
+    \sigma_{W_{\ell}}^2 &= \E\left[\int_0^T \int_0^T w(t) w(\tau)\phi_{\ell}(t) \phi_{\ell}(\tau) \; dt\, d\tau\right]\\ 
+    &= \int \int \E[w(t) w(\tau)] \phi_{\ell}(t) \phi_{\ell}(t)\; dt\\ 
+    &= \int \int N_0 \delta(t - \tau) \phi_{\ell}(t) \phi_{\ell}(t)\; dt\\
+    &= N_0
+\end{align*}
+(technically dropping the conjugates -- just pretend everything is real.) 
+
+Writing, 
+\begin{align*}
+    r_1 &= x_{m1} + w_1 \qquad (w_1 \sim \Nc(0, N_0))\\ 
+    r_2 &= x_{m2} + w_2 \qquad (w_2 \sim \Nc(0, N_0))
+\end{align*}
+we can check 
+\begin{align*}
+    \E[W_1 W_2] &= \E\left[\int_0^T \int_0^T w(t) w(\tau) \phi_1(t) \phi_2(\tau)\; dt\, d\tau\right]\\ 
+    &= \int_0^T \int_0^T N_0\delta(t - \tau) \phi_1(t) \phi_2(\tau)\; dt\, d\tau\\ 
+    &= \int_0^T N_0 \phi_1(\tau) \phi_2(\tau)\; d\tau\\ 
+    &= 0
+\end{align*}
+that is, our noises are independent!
+
+Define our total receiver output 
+\[W = \begin{bmatrix}
+    w_1\\ w_2
+\end{bmatrix}\]
+distributed by 
+\[f_W(w_1, w_2) = \left(\frac{1}{2\pi N_0}\right) \exp\left(-\frac{w_1^2 + w_2^2}{2N_0}\right)   \]
+which looks like a round bump. 
+
+For 
+\[R = \begin{bmatrix}
+    r_1\\ r_2
+\end{bmatrix} = \begin{bmatrix}
+    x_{m1}\\ x_{m2}
+\end{bmatrix} + \begin{bmatrix}
+    w_1\\ w_2
+\end{bmatrix}\]
+
+This lets us write 
+\[f_{R | m}(r_1, r_2 | m) = \left(\frac{1}{2\pi N_0}\right) \exp\left(\frac{-(r_1 - x_{m1})^2 - (r_2 - x_{m2})^2}{2N_0}\right) \]  
+or in signal space: two Gaussian bumps, one centered at $x_1$ and one centered $x_2$. 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$\phi_1$},
+    ylabel={$\phi_2$},
+    xmin=-4, xmax=4,
+    ymin=-4, ymax=4,
+    view = {0}{90}
+]
+    \addplot3[blue, contour gnuplot={labels=false}] {exp(-(x-2)^2/2 - (y - 1)^2/2)};
+    \addplot3[red, contour gnuplot={labels=false}] {exp(-(x+2)^2/2 - (y + 1)^2/2)};
+    \draw[fill] (2, 1) circle (1pt) node[above right] {$x_1$};
+    \draw[fill] (-2, -1) circle (1pt) node[below left] {$x_2$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+To make a minimum probability of error decision rule, we can use exactly the likelihood ratio test from earlier: 
+
+\[\frac{p_1 f_{R | 1}}{p_1 f_{R|2}} \overset{\text{yes}}{\underset{\text{no}}{\lessgtr}} 1\]
+
+Packaging into a vector $r$, 
+\begin{align*}
+    \frac{p_1 f_{R | 1}}{p_1 f_{R|2}} &= \frac{p_1 \left(\frac{1}{2\pi N_0}\right) \exp\left(-\frac{\abs{r - x_1}^2}{2N_0}\right) }{p_2 \left(\frac{1}{2\pi N_0}\right) \exp\left(-\frac{\abs{r - x_2}^2}{2N_0}\right) }\\ 
+    &= \frac{\exp\left(-\frac{\abs{r - x_1}^2}{2N_0}\right) }{ \exp\left(-\frac{\abs{r - x_2}^2}{2N_0}\right) } \qquad (\text{assuming } p_1 = p_2)
+\end{align*}
+meaning our decision rule 
+\[\frac{\exp\left(-\frac{\abs{r - x_1}^2}{2N_0}\right) }{ \exp\left(-\frac{\abs{r - x_2}^2}{2N_0}\right) } \lessgtr 1 \implies \text{pick signal closest to } r\]
+
+This is a \tbf{distance-based detection} 
+\[\abs{r - x_1}^2 \overset{\text{say 2}}{\underset{\text{say 1}}{\lessgtr}} \abs{r - x_2}^2\]
+where we say $2$ if greater and $1$ if less.
+
+We can extend our two rail system to an $N$ rail system by just adding more correlators and then we can do the same thing: represent our signals as points in signal space and pick the closest one to the received signal.
+
+How many rails should we have? For $1:N$ signals, we will receive $r_{n} = x_{mn} + w_n$ for $n = 1, \dots, N$ with $w_n$ independent Gaussians but on rails $N:N+m$, we will receive $r_{N+k} = w_{N+k}$ for $k = 1, \dots, m$ with $w_{N+k}$ independent Gaussians.
+
+Since they are all independent, these later signals provide no further information about $w_{1:N}$ so we can just ignore them and stick to $N$ rails -- we have an optimal receiver with $N$ rails for $N$ signals!
+
+As we will see, the choice of basis functions will determine the geometry of our signal space, hence the distance between our signals, hence the probability of error. This allows us to introduce various keying modulation schemes by choosing different basis functions.
+
+As some examples:
+\begin{itemize}
+    \item \tbf{Quadrature Phase Shift Keying (QPSK):} $\phi_1(t) = \cos t$ and $\phi_2(t) = \sin t$ (signals encoded in the phase of the carrier wave)
+    \item \tbf{Frequency Shift Keying (FSK):} $\phi_1(t) = \cos 2\pi f_c t$ and $\phi_2(t) = \cos 2\pi(2f_c) t$ (signals encoded along two axes) 
+    \item \tbf{Amplitude Shift Keying (ASK:)} single basis $\phi$ encoding amplitude
+\end{itemize}
+
+\section{April 7}
+
+\subsection{Signal Space Review}
+What is \tbf{signal space}? A representation of signals as points in a $\phi_k$ basis: 
+\[x(t) = \sum_k x_k \phi_k(t) \iff x(t) = \begin{bmatrix}
+    x_1\\ x_2\\ \vdots\\ x_K
+\end{bmatrix}\] 
+satisfying 
+\[\brak{\phi_k(t), \phi_{\ell}(t)} = \int_0^T \phi_k(t) \phi_{\ell}^*(t) \; dt = \delta_{\ell k}\]
+
+It is somewhat strange to think about representing a continuous signal as a vector but it is very powerful.
+
+Take the example of trying to transmit two signals $x_1(t)$ and $x_2(t)$. WLOG, we first normalize $x_1$:  
+\[\phi_1(t) = \frac{x_1(t)}{\sqrt{\brak{x_1, x_1}}} = \frac{x_1(t)}{\norm{x_1(t)}_{2}}\]
+
+Then we can project $x_2$ onto $\phi_1$ and orthogonalize to get
+\[\phi_2(t) = \frac{x_2(t) - \brak{x_2, \phi_1} \phi_1(t)}{\sqrt{\brak{x_2 - \brak{x_2, \phi_1} \phi_1,\;  x_2 - \brak{x_2, \phi_1} \phi_1}}} = \frac{Q(t)}{\norm{Q(t)}_{2}}\]
+
+This allows us to send $r(t) = x_i(t) + w(t)$ and design a receiver that can accept either $x_1$ or $x_2$ and correctly distinguish between them.
+
+We can pre-calculate 
+\[w_k = \brak{w(t), \phi_k(t)}\] 
+and sample $w_k$ and $w_{\ell}$. The integral in the inner product is just a sum of Gaussians so $w_k$ and $w_{\ell}$ are each Gaussian and jointly Gaussian. We can check that they are independent by checking the covariance is $0$ (and sleight of handing to assuming everything is real): 
+\begin{align*}
+    \E[w_k^2] &= \int_0^T \int_0^T w(t) w(\tau) \phi_k(t) \phi_k(\tau) \; dt \; d\tau\\ 
+    &= \int_0^T \int_0^T N_0 \delta(t - \tau) \underbrace{\phi_k(t) \phi_k(\tau)}_{1} \; dt \; d\tau\\
+    &= N_0\\
+    \E[w_k\, w_{\ell}] &= \int_0^T \int_0^T w(t) w(\tau) \phi_k(t) \phi_{\ell}(\tau) \; dt \; d\tau\\ 
+    &= \int_0^T \int_0^T N_0 \delta(t - \tau) \underbrace{\phi_k(t) \phi_{\ell}(\tau)}_{0} \; dt \; d\tau\\
+    &= 0
+\end{align*}
+so they have $N_0$ variance and $0$ covariance meaning they are independent Gaussians.
+
+Now we can build a two channel receiver with two correlators and then we can write the received signal as
+\[ r = \begin{bmatrix}
+        r_1\\ r_2
+    \end{bmatrix} = \begin{bmatrix}
+        \int r(t) \phi_1(t) \; dt\\ 
+        \int r(t) \phi_2(t) \; dt
+    \end{bmatrix} = \begin{bmatrix}
+        \brak{x_i(t), \phi_1(t)} + \brak{w(t), \phi_1(t)}\\
+        \brak{x_i(t), \phi_2(t)} + \brak{w(t), \phi_2(t)}
+    \end{bmatrix} = \begin{bmatrix}
+        x_{i1} + w_1\\ 
+        x_{i2} + w_2
+    \end{bmatrix}\]
+   
+    \begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$\phi_1$},
+    ylabel={$\phi_2$},
+    xmin=-4, xmax=4,
+    ymin=-4, ymax=4,
+    view = {0}{90}
+]
+    \addplot3[blue, contour gnuplot={labels=false}] {exp(-(x-2)^2/2 - (y - 1)^2/2)};
+    \addplot3[red, contour gnuplot={labels=false}] {exp(-(x+2)^2/2 - (y + 1)^2/2)};
+    \draw[fill] (2, 1) circle (1pt) node[above right] {$x_1$};
+    \draw[fill] (-2, -1) circle (1pt) node[below left] {$x_2$};
+
+    \node[above] at (2, 3) {$f_{R|1}(r|1)$};
+    \node[above] at (-2, 1) {$f_{R|2}(r|2)$};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+hence deciding which signal we received is just a distance-based detection problem 
+\begin{align*}
+    \frac{\exp(-\abs{r - x_1}^2/2N_0)}{\exp(-\abs{r - x_2}^2/2N_0)} &\lessgtr \frac{p_2}{p_1}\\ 
+    \exp\left[\frac{1}{2N_0} \left(\abs{r - x_1}^2 - \abs{r - x_2}^2\right)\right] &\lessgtr \frac{p_2}{p_1}\\ 
+    \frac{1}{2N_0} \left(\abs{r - x_1}^2 - \abs{r - x_2}^2\right) &\lessgtr \log \frac{p_2}{p_1}\\
+    d_2^2 - d_1^2 &\overset{1}{\underset{2}{\lessgtr}} 2N_0 \log \frac{p_2}{p_1}
+\end{align*}
+
+\begin{exercise}
+    \textbf{Exercise:} What shape is this decision boundary if $p_1 \neq p_1$? 
+\end{exercise}
+
+Why did we only have two rails? We could have more rails to describe many more $w_k$. But since we showed that the $w_k$ are independent, the later rails provide no information about the noise on the first two rails (the only ones with signal) so we can just ignore them and stick to two rails -- Optimal receiver! 
+
+\subsection{Signal Menagerie}
+
+Choose two orthonormal basis functions $\phi_1(t)$ and $\phi_2(t)$. Let's say $\sin 2\pi t$ and $\cos 2\pi t$. 
+
+Notice these aren't technically normal but we can say 
+\begin{align*}
+    \phi_1(t) &= \sqrt 2 \sin 2\pi t\\
+    \phi_2(t) &= \sqrt 2 \cos 2\pi t
+\end{align*}
+
+Consider a pojnt 
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$\phi_2$},
+    ylabel={$\phi_1$},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \draw[blue, fill] (1, 1) circle (1pt) node[above right] {$x_1$};
+    \draw[blue, fill] (1, -1) circle (1pt) node[above right] {$x_2$};
+    \draw[blue, fill] (-1, 1) circle (1pt) node[above right] {$x_3$};
+    \draw[blue, fill] (-1, -1) circle (1pt) node[above right] {$x_4$};
+
+
+    
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+These correspond to the signals 
+\begin{align*}
+    x_1(t) &= \sqrt 2 \cos 2\pi t + \sqrt 2 \sin 2\pi t\\
+    x_2(t) &= \sqrt 2 \cos 2\pi t - \sqrt 2 \sin 2\pi t
+\end{align*}
+
+By convention, we call the vertical ($\sin$) rail the \tbf{quadrature rail} and the horizontal ($\cos$) rail the \tbf{in-phase rail}.
+
+This gives this scheme the name \tbf{Quadrature Phase Shift Keying (QPSK)} and lets us encode two bits per symbol by picking one of the four points. 
+
+What if we wanted to encode more bits per symbol? Introduce \tbf{16-QPSK} 
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (-2, 0) -- (2, 0) node[right] {$\phi_2$};
+    \draw (0, -2) -- (0, 2) node[above] {$\phi_1$};
+
+    \draw (1, 0.25) -- (1, -0.25) node[below right] {$1$};
+    \draw (0.25, 1) -- (-0.25, 1) node[above left] {$1$};
+
+
+    \foreach \x in {-1, -0.5, 0.5, 1} {
+        \foreach \y in {-1, -0.5, 0.5, 1} {
+            \draw[blue, fill] (\x, \y) circle (1pt);
+        }
+    }
+\end{tikzpicture}
+\end{center}
+but the maximum energy here is just $2$ so we are packing more bits into the same energy, bringing the signals closer together and increasing the probability of error.
+
+Let's choose two more basis functions: $f_1(t) =\sqrt 2 \sin 2\pi t$ and $f_2= (t) = \sqrt 2 \sin 4\pi t$ so we are using two different frequencies to encode our signals. This is \tbf{Frequency Shift Keying (FSK)}.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$f_1$},
+    ylabel={$f_2$},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \draw[blue, fill] (1, 1) circle (1pt) node[above right] {$x_1$};
+    \draw[blue, fill] (1, -1) circle (1pt) node[above right] {$x_2$};
+    \draw[blue, fill] (-1, 1) circle (1pt) node[above right] {$x_3$};
+    \draw[blue, fill] (-1, -1) circle (1pt) node[above right] {$x_4$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+What else could we do? We could just have one basis function $\phi$ and encode our signals in the amplitude of $\phi$ -- this is \tbf{Amplitude Shift Keying (ASK)}.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$x$},
+    ylabel={$y$},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \pgfplotsinvokeforeach{-1, -0.5, 0.5, 1} { 
+        \node[blue] at (#1, 0) {$\circ$};
+    }
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+We could also use time! 
+
+\begin{center}
+\begin{tikzpicture}
+    \draw (0, 0) -- (5, 0) node[right] {$t$};
+    \draw(0, 0) -- (0, 2) node[above] {$\phi_i(t)$};
+
+    \node[left] at (0, 1) {$\sqrt 2$};
+    \node[below] at (2, 0) {$1/2$};
+    \node[below] at (4, 0) {$1$};
+
+    \draw[blue] (0, 0) rectangle ++(2, 1) node[midway, above] {$\phi_1$};
+    \draw[red] (2, 0) rectangle ++(2, 1) node[midway, above] {$\phi_2$};
+
+\end{tikzpicture}
+\end{center}
+
+In particular, this opens the door to using different \emph{signal constellations} on different intervals as long as the transmitter and receiver agree! 
+
+Returning all the way to the beginning of the course, this means that we can transform our message to bits $m(t) \to b_k$ encoded in a signal set $\{\phi_k(t)\}$ yielding a sequence $x_1(t), \dots, x_{2^N}(t)$ with total freedom. 
+
+\subsection{CDMA}
+Consider the two signals $x_{\ell}$ and $x_Y$ with 25 \tbf{chips} on $(0, T)$ 
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={1, 2, ..., 12},
+    xticklabels=\empty,
+    ytick=\empty,
+    clip=false,
+    xlabel={$x$},
+    ylabel={$y$},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= 0, xmax=12,
+    view = {0}{90}
+]
+    \addplot[blue] coordinates {(0, 1) (1, 1) (1, -1) (2, -1) (2, 1) (3, 1) (3, -1) (7, -1) (7, 1) (8, 1) (8, -1) (9, -1) (9, 1) (10, 1) (12, 1)}; 
+    \addplot[red] coordinates {(0, 1) (6, 1) (6, -1) (12, -1)}; 
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+Now we can allocate the chips 
+\[c_1 = (1, -1, \dots, 1)\]
+(each bit chosen $\pm 1$ with equal probability)
+and similarly for $c_2, \dots, c_L$
+
+Now if Emma at $c_2$ wants to send a bit $b \in \{-1, 1\}$, they can send $b c_2$ which is read at the receiver 
+\[r = b_2 c_2 + \sum_{\ell = 1, \ell \neq 2}^L b_{\ell} c_{\ell}\]
+
+Emma's receiver does not care about any of the others so it can just correlate with $c_2$ to get 
+\[r \cdot c_2 = r_2\]
+
+But notice 
+\[r \cdot c_2 = \underbrace{\sum_{\ell = 1, \ell \neq 2}^L b_{\ell} c_{\ell} \cdot c_2}_Q + b_2 \underbrace{c_2 \cdot c_2}_{=1}\]
+and since $c_{\ell}$ are random, the sum looks like a Gaussian with mean $0$ ($\E[b_i] = 0$) and variance 
+\begin{align*}
+    \E[Q^2] &= \E\left[\sum_{\ell} \sum_m b_{\ell} b_{m} c_{\ell}^{\top} c_2 c_m^{\top} c_2\right] \\ 
+    &= \E\left[\sum_{\ell} (c_{\ell}^{\top} c_2)^2\right] \qquad (\text{since } \E[b_{\ell} b_m] = \delta_{\ell m})\\
+    &= \E\left[\sum_{\ell} \left(\sum_{m=1}^N \sum_{n=1}^N c_{\ell n} c_{2n} c_{\ell m} c_{2 m}\right) \right] \\ 
+    &= \E\left[\sum_{\ell} \sum_{n=1}^N c_{\ell n} c_{2 n} c_{\ell n} c_{2n}\right]\\ 
+    &= \E\left[\sum_{\ell} N\right] \\ 
+    &= (L-1)N
+\end{align*}
+so $Q \sim \Nc(0, (L-1)N)$ and our received signal has energy $N^2$ hence our SNR is 
+\[\frac{N^2}{(L-1)N} = \frac{N}{L-1}\] 
+that is, the number of chips over the number of users -- the more chips we have, the better our SNR. This is \tbf{CDMA.}
 
 \end{document}
