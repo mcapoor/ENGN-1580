@@ -11,7 +11,7 @@
 \usepackage{verbatim}
 \usepackage{sectsty}
 \usepackage[shortlabels]{enumitem}
-
+\usepackage{algorithmic}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
@@ -21,8 +21,10 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{tikz-cd}
+\usepackage{tikz-qtree}
 \usepackage{circuitikz}
 \usepackage{multirow}
+
 
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{intersections, decorations.markings, decorations.pathmorphing, patterns}
@@ -3650,4 +3652,398 @@ so $Q \sim \Nc(0, (L-1)N)$ and our received signal has energy $N^2$ hence our SN
 \[\frac{N^2}{(L-1)N} = \frac{N}{L-1}\] 
 that is, the number of chips over the number of users -- the more chips we have, the better our SNR. This is \tbf{CDMA.}
 
+\chapter{Information Theory}
+\section{April 14 - Introduction to Information Theory}
+
+From a message $m(t)$ to the sampler and quantizer, we have a map to bits $\beta$. Thus far, we have supposed that each bit is equally likely to be $0$ or $1$ but what if we have some prior information about the message? 
+
+What if we can compress the message \emph{without loss} to transmit fewer bits and use less bandwidth? 
+
+On the transmission, receiver, and detector side, we have channel problems of noise and interference. How can we design a code to be robust to noise and interference? Can we add redundancy?  
+
+\tbf{A Motivating Problem:} Suppose we have 27 coins, one of which is a fake coin that is heavier than the others. We have a scale that can compare the weight of two sets of coins and tell us which one is heavier. It can output 
+\begin{itemize}
+    \item L, if the left side is heavier
+    \item R, if the right side is heavier
+    \item B, if they are equal
+\end{itemize}
+
+How can we find the fake coin in the fewest number of weighings?
+
+\begin{center}
+    \begin{algorithmic}
+        \STATE \textbf{Input:} 27 coins, one of which is heavier
+        \STATE \textbf{Output:} The fake coin
+        \STATE Divide the coins into three groups of 9 coins each
+        \STATE Weigh the first two groups against each other
+        \IF{L}
+            \STATE The fake coin is in the left group
+        \ELSIF{R}
+            \STATE The fake coin is in the right group
+        \ELSE
+            \STATE The fake coin is in the middle group
+        \ENDIF
+        \STATE Repeat the process with the group of 9 coins until we find the fake coin
+    \end{algorithmic}
+\end{center}
+
+This gives us a strategy to find the fake coin in $\log_3 27 = 3$ weighings.
+
+Define the \tbf{Shannon Entropy:}
+\[H(p) = -\sum p_i \log p_i\]
+where $p_i$ is the probability of the $i$-th outcome 
+
+Calculating the entropy of this distribution where $p_i = 1/27$ for all $i$, we get
+\[-\sum_{i=1}^{27} \frac{1}{27} \log \frac{1}{27} = -27 \cdot \frac{-3}{27} = 3\]
+
+Intuitively, this entropy measures how far we can compress the message. 
+
+\tbf{Example 2:} Let $p(a) = 1/2$, $p(b) = 1/4$, and $p(c) = 1/8$, $p(d) = 1/8$. Our source produces a message, say $s = abaccaadbc\dots$. 
+
+The naive coding is to use 2 symbols per digit: $a = 00$, $b = 01$, $c = 10$, and $d = 11$ and just transmit the message. 
+
+Let's try another scheme: 
+\begin{multicols}{2}
+	\begin{center}
+        \begin{tikzpicture}
+        		\Tree [.{}
+        				[.1 \node[below, blue] {$a$};]
+        				[.0
+                            [.1 \node[below, blue] {$b$};]
+                            [.0 
+                                [.1 \node[below, blue] {$c$};]
+                                [.0 \node[below, blue] {$d$};]
+                            ]
+                        ]
+        		    ]
+        	\end{tikzpicture}
+        
+            \begin{tabular}{c|cc}
+                & $p$ & Code\\ \hline
+                a & $1/2$ & $0$\\
+                b & $1/4$ & $10$\\
+                c & $1/8$ & $100$\\
+                d & $1/8$ & $000$        
+            \end{tabular}
+    \end{center}
+\end{multicols}
+
+What is the average number of symbols per digit using this method? 
+\[c = \frac{1}{2} \cdot 1 + \frac{1}{4} \cdot 2 + \frac{1}{8} \cdot 3 + \frac{1}{8} \cdot 3 = 1.75\]
+
+Now we can calculate the per-digit entropy $H(\text{source}) = \alpha$. 
+
+\begin{proposition}
+    \textbf{Source Coding Theorem:} for $\bar c$ the average number of symbols per digit, 
+    \[\bar c \geq H(\text{source})\] 
+\end{proposition}
+
+\tbf{Entropy Rate:}
+\[\mathcal H(\text{source}) = \lim_{n \to \infty} \frac{H(x_1, \dots, x_n)}{n}\]
+which reduces to $H(x)$ if the source is i.i.d.
+
+Let's look at $H(p) = -\sum_i p_i \log p_i$ a bit more. Obviously, 
+\[\sum p_i = 1\]
+
+Can we bound $H$? Clearly, $H \geq 0$ since $p_i \leq 1$ so $\log p_i \leq 0$.
+
+When does $H(p) = 0$? When $p_i = 0$ since $\lim_{\alpha \to 0} \alpha \log \alpha = 0$ or when $p_i = 1$ since $\log 1 = 0$. That is, precisely when the distribution is deterministic.
+
+When does $H(p)$ achieve its maximum? Intuitively, it is ``most random'' when $p_i$ are all equal,
+\[H(p) = -\sum_{i=1}^n \frac{1}{n} \log \frac{1}{n} = \log n\] 
+
+Can we prove that $H(p) \leq \log n$ in general?
+\begin{align*}
+    H(p) - \log n &= -\sum_{i=1}^n p_i \log p_i - \left(-\sum_{i=1}^n \frac{1}{n} \log \frac{1}{n}\right) \\
+    &= -\sum_{i=1}^n p_i \log p_i + \sum_{i=1}^n p_i \log \frac{1}{n} \\
+    &= -\sum_{i=1}^n p_i (\log p_i + \log n)\\ 
+    &= -\sum_i p_i \log (n p_i)\\
+    &= \sum_i p_i \log \left(\frac{1}{p_i n}\right)\\ 
+    &\leq \sum_{\begin{subarray}{c}
+        i\\ p_i \neq 0
+    \end{subarray}} p_i \left(\frac{1}{p_i n} - 1\right) \qquad (\text{since } \log x \leq x - 1)\\ 
+    &= \sum_{\begin{subarray}{c}
+        i\\ p_i \neq 0
+    \end{subarray}} \frac{1}{n} - 1 \leq 0
+\end{align*}
+
+\section{April 16}
+
+Last time, we assumed that we were transmitting bits. This time, consider the outputs of an N-level quantizer $q_{n_1}, \dots, q_{n_k}$ distributed iid by $\P(q_n) = p_n$. 
+
+We assume that each $q_{n_i} \in \{q_1, \dots, q_N\}$ an alphabet. 
+
+Define an average code word length 
+\[\bar c = \sum c_n p_n\] 
+where $c_n$ is the number of binary symbols used to encode $q_n$.
+
+\begin{proposition}
+    \textbf{Source Coding Theorem:} $\bar c = \sum_n c_n p_n \geq H(Q) = -\sum_n p_n \log p_n$
+\end{proposition}
+
+\tbf{Example:} Suppose we have four symbols a, b, c, d with probability $1/4$ each. What is the minimal average code word length?
+\[H(q) = -\sum_{i=1}^4 \frac{1}{4} \log \frac{1}{4} = 2\]
+
+Hence, the obvious coding $a = 00$, $b = 01$, $c = 10$, and $d = 11$ is optimal on length and uniquely decodable (given the length of the code words, we can decode without ambiguity).
+
+\tbf{Example:} Now let $p_a = 1/2$, $p_b = 1/4$, $p_c = 1/8$, and $p_d = 1/8$. Then
+\[H(q) = -\left(\frac{1}{2} \log \frac{1}{2} + \frac{1}{4} \log \frac{1}{4} + \frac{1}{8} \log \frac{1}{8} + \frac{1}{8} \log \frac{1}{8}\right) = 1.75\]
+
+If we build a tree 
+
+\begin{center}
+    
+    \begin{tikzpicture}
+        		\Tree [.{}
+        				[.1 \node[below, blue] {$a$};]
+        				[.0
+                            [.1 \node[below, blue] {$b$};]
+                            [.0 
+                                [.1 \node[below, blue] {$c$};]
+                                [.0 \node[below, blue] {$d$};]
+                            ]
+                        ]
+        		    ]
+        	\end{tikzpicture}
+\end{center}
+
+then the code is \tbf{prefix}, hence uniquely (and instantaneously) decodable, and the average code word length is
+\[\bar c = \frac{1}{2} \cdot 1 + \frac{1}{4} \cdot 2 + \frac{1}{8} \cdot 3 + \frac{1}{8} \cdot 3 = 1.75\]
+so optimal!
+
+\tbf{Hoffman Coding:} Given $N$ symbols, choose a permutation $s_1, \dots, s_N$ arranging them in order of decreasing probability $p_1, \dots, p_N$ ($p_n \geq p_{n+1}$)
+
+\begin{center}
+\begin{tikzpicture}
+    \foreach \y in {1, 2, 4} {
+        \node at (0, -\y) {$p_{\y}$}; 
+        \node at (1, -\y) {$s_{\y}$};  
+    }
+    \node at (0, -3) {$\vdots$};
+    \node at (1, -3) {$\vdots$};
+
+    \node at (3, 1) {$s_1$};
+    \node at (3, 2) {$s_2$};
+    \draw (1, -3) -- (2, -3) -- (2, -2) -- (1, -2);
+    \draw (2, -2.5) -- (3, -2.5) node[midway, above] {$(s_{N-1})'$} node[midway, below] {$p_N + p_{N-1}$};
+
+\end{tikzpicture}
+\end{center}
+
+Now we can reorder and join by probability again. Continue iterating until we have $c_1, \dots, c_n$ our code words.
+
+\tbf{Properies of Entropy:} 
+
+Now say we have two random variables $X$ and $Y$ with join distribution $p_{X, Y}(x, y)$. We can define the \tbf{joint entropy}
+\[H(XY) = -\sum_x \sum_y p_{xy} \log p_{xy}\]
+
+Suppose $X \perp Y$. Then $p_{xy} = p_x p_y$ so
+\[H(XY) = -\left(\sum_x p_x \log p_x + \sum_y p_y \log p_y\right) = H(X) + H(Y)  \]
+
+Consider 
+\begin{align*}
+    H(X | Y) &= -\sum_x \sum_y p_{xy} \log p_{x|y}\\ 
+    &= -\sum_x \sum_y p_{xy} \log \frac{p_{xy}}{p_y}\\ 
+    &= H(X, Y) - H(Y)
+\end{align*}
+
+\tbf{Kullback-Leibler Divergence:} For two distributions $p$ and $q$ on the same alphabet, we can define the KL divergence
+\[D_{\text{KL}}(p \| q) = \sum_i p_i \log \frac{p_i}{q_i}\]
+where $p = (p_1, \dots, p_n)$ and $q = (q_1, \dots, q_n)$.
+
+\begin{tbox}{\textbf{Proposition:} $D_{\text{KL}}(p \| q) \geq 0$ with equality if and only if $p = q$.}
+    \emph{Proof:} Consider 
+    \begin{align*}
+        -D(p \| q) &= \sum_i q_i \log \frac{p_i}{q_i}\\ 
+        &\leq \sum_{\begin{subarray}{c}
+            i\\ q_i \neq 0
+        \end{subarray}} q_i \left(\frac{p_i}{q_i} - 1\right) \qquad \text{ since } \log x \leq x - 1\\ 
+        &= \sum_{\begin{subarray}{c}
+            i\\ q_i \neq 0
+        \end{subarray}} p_i - \sum_{\begin{subarray}{c}
+            i\\ q_i \neq 0
+        \end{subarray}} q_i\\ 
+        &\leq 0
+    \end{align*}
+
+    Hence $D_{\text{KL}}(p \| q) \geq 0$   
+    \end{tbox}
+
+Consider the communications theory case where we transmit a message $X$ and receive $Y$. We can define the \tbf{mutual information}
+\begin{align*}
+    I(X; Y) &= D_{\text{KL}}(p_{XY} \| p_X p_Y)\\ 
+    &= \sum_{x,y} p_{xy} \log \frac{p_{xy}}{p_x p_y}\\ 
+    &= H(X) + H(Y) - H(X, Y) \qquad (\implies I(x; y) = 0 \text{ if } X \perp Y)\\ 
+    &= H(Y) - H(Y | X)\\
+\end{align*}
+
+As we will see, this tells us the maximum rate at which we can reliably transmit information over a noisy channel.
+
+\section{April 21}
+
+Let's review our hardware layer. 
+
+Given a message $m(t)$, we 
+\begin{enumerate}
+    \item Digitize 
+    \item (Optionally) compress to symbols $\{x_1, \dots, x_L\}$ 
+    \item Map these symbols to signals $\{x_1(t), \dots, x_L(t)\}$
+    \item Transmit the signals to receive the noisy $r(t) = x(t) + w(t)$
+    \item Correlate with the basis functions to get $r = x_i + w_i$ in signal space
+    \item Use a decision rule to recover $y \in \{\underbrace{x_1, \dots, x_L}_{\text{input}}, \underbrace{q_1, q_2, \dots}_{\text{other possible decisions}} \}$
+\end{enumerate}
+
+We can model everything after the receiver as a channel with input $X$ and output $Y$. For now, say $L = 2$, 
+
+\begin{center}
+\begin{tikzpicture}
+    \node (x) at (0, 1) {$X$};
+    \node (y) at (2, 1) {$Y$};
+    \node (x1_in) at (0, 0) {$x_1$};
+    \node (x1_out) at (2, 0) {$x_1$};
+    \node (x2_in) at (0, -1) {$x_2$};
+    \node (x2_out) at (2, -1) {$x_2$};
+
+    \draw[->] (x1_in) -- (x1_out) node[midway, above, blue] {$1 - \ep$};
+    \draw[->] (x2_in) -- (x2_out) node[midway, below, blue] {$1 - \ep$};
+    \draw[->] (x1_in) -- (x2_out) node[midway, above, blue] {$\ep$};
+    \draw[->] (x2_in) -- (x1_out) node[midway, above, blue] {$\ep$};
+
+\end{tikzpicture}
+\end{center}
+which gives us a \tbf{Binary symmetric channel (BSC)}
+
+We can imagine a similar \tbf{Binary erasure channel} where some information is lost
+
+
+\begin{center}
+\begin{tikzpicture}
+    \node (x) at (0, 1) {$X$};
+    \node (y) at (2, 1) {$Y$};
+    \node (x1_in) at (0, 0) {$x_1$};
+    \node (x1_out) at (2, 0) {$x_1$};
+    \node (E) at (2, -1) {$E$};
+    \node (x2_in) at (0, -2) {$x_2$};
+    \node (x2_out) at (2, -2) {$x_2$};
+
+    \draw[->] (x1_in) -- (x1_out) node[midway, above, blue] {$1 - \delta$};
+    \draw[->] (x1_in) -- (E) node[midway, above, blue] {$\delta$};
+    \draw[->] (x2_in) -- (E) node[midway, above, blue] {$1 - \delta$};
+    \draw[->] (x2_in) -- (x2_out) node[midway, below, blue] {$\delta$};
+
+
+\end{tikzpicture}
+\end{center}
+
+Let's think a little more about error. In the simplest scheme to reduce error, we might repeat the message multiple times and take a majority vote at the end. We improve reliability at the cost of many more transmissions. 
+
+One can imagine many more sophisticated schemes to reduce or detect error (parity bits, checksums, etc.) but how do we know how good they can be?
+
+
+\begin{proposition}
+    \textbf{Proposition:} Imagine a source emitting iid bits. Letting $y_i$ be the possible outputs given inputs $x_i$, we have
+    \begin{itemize}
+        \item $\text{card}(x_1, \dots, x_N) \sim 2^{H(X)}$
+        \item $\text{card}(y_1, \dots, y_n \;| \; x) \sim 2^{H(Y | X)}$
+        \item $\text{card}(y_1, \dots, y_n) \sim 2^{H(Y)}$
+    \end{itemize}
+
+    In particular, 
+    \[\text{messages } m \leq \frac{2^{H(Y)}}{2^{H(Y | X)}} = 2^{H(Y) - H(Y | X)}\]
+    which implies the number in bits of messages we can represent is 
+    \[\text{bits} \leq H(Y) - H(Y | X) = I(X; Y )\] 
+\end{proposition}
+
+\tbf{Remark:} the fact that the channel is iid is also equivalent to saying it is memoryless (i.e. it obeys the Markov property)
+
+This gives us a fundamental limit on the number of bits we can reliably transmit over a noisy channel -- $c \leq I(X; Y)$ -- and hence a fundamental limit on the performance of any error-correcting code.
+
+Returning to the BSC, we can calculate $I(X; Y)$ 
+\begin{align*}
+    I(X; Y) &= H(Y) - H(Y | X)\\ 
+    &= H(Y) - \P(X = 0)H(Y | X = 0) - \P(X = 1)H(Y | X = 1)\\ 
+    &= H(Y) - H_B(\ep)
+\end{align*}
+where $H_B(\ep) = -\ep \log \ep - (1 - \ep) \log (1 - \ep)$ is the \tbf{binary entropy} function.
+
+Since we want to maximize this, we bound $H(Y) \leq 1$ with equality when $\P(X = 0) = \P(X = 1) = 1/2$, 
+\[I(X; Y) = 1 - H_B(\ep) \]
+so we want $\ep$ to be close to $0$ (always correct) or $1$ (always lying) to maximize the mutual information.
+
+This motivates the question: how do we choose our code words assuming we have $k \leq c$ bits. Shannon answered: choose them randomly among the $2^N$ possible code words 
+
+\section{April 23}
+
+% include minimal.tex 
+
+we call this system \tbf{reliable} if we can consistently recover the original signal $S$ from the output $\hat S$ with high probability. In general, this is possible as long as 
+\begin{enumerate}
+    \item we con't compress lower than the source entropy 
+    \item we don't exceed the channel capacity ($c \leq I(X; Y)$) during transmission 
+    \item we account for the delay introduced during encoding, physical, 
+\end{enumerate}
+
+Consider the physical layer:
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.3\textwidth,
+    axis lines=middle,
+    no markers,
+    xtick={-1, 1},
+    xticklabels={-A, A},
+    ytick={-1, 1},
+    yticklabels={-A, A},
+    clip=false,
+    xlabel={$\phi_1$},
+    ylabel={$\phi_2$},
+    domain=-2:2,
+    ymin=-2, ymax=2,
+    xmin= -2, xmax=2,
+    view = {0}{90}
+]
+    \node[blue] at (1, 1) {$\circ$};
+    \node[blue] at (-1, -1) {$\circ$};
+    \draw[blue, dashed] (0, 0) -- (1, 1); 
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+The energy of each of these signals is $2A^2$. To improve reliability, we can increase $A$ to increase the energy of the signal, hence the distance between the signals, and hence the ease of detection. 
+
+If we add more signals, we can pack more bits into the same energy but we will have to make the signals closer together, increasing the probability of error. We have a tradeoff between the number of bits we can encode for a given energy and the probability of error. We could either increase the energy to maintain the same probability of error or accept a higher probability of error. However, we are ALWAYS energy limited. 
+
+Mathematically, our capacity depends on the power limit on $X$ and the noise in the channel:
+\[R = \underbrace{X}_{\E[X^2] \leq P} + \underbrace{w}_{\sim \Nc(0, N_0)} \implies \text{capacity } = \max_{f_X(\cdot)} I(X; R)\]
+(white Gaussian noise) 
+
+\begin{proposition}
+    \textbf{Theorem:} If $X$ is continuous and $\E[X^2] \leq P$,
+    \[\max_{f_X(\cdot)} h(X) = \frac{1}{2} \log 2\pi e P \sim \Nc(0, P)\]
+\end{proposition}
+
+So in our case, 
+\[h(w) = \frac{1}{2} \log 2\pi e N_0 \implies h(R) = h(R | X)\]
+
+How might we maximize $h(R)$? 
+
+We have the constraint
+\[\E[R^2] = \E[X^2] + \E[w^2] + 2\E[X] \cdot \E[w] \leq P + N_0\]
+
+We want to maximize this so choose $X$ to be Gaussian with mean $0$ and variance $P$ so that $R$ is also Gaussian with mean $0$ and variance $P + N_0$.
+
+Hence, the \tbf{capacity of a Gaussian channel} is
+\[c = h(R) - h(R | X )= \frac{1}{2}\log 2\pi e(P + N_0) - \frac{1}{2}\log 2\pi e N_0 = \frac{1}{2} \log \left(1 + \frac{P}{N_0}\right)\]
+
+What if we have several channels? Consider $r(t) = x(t) + w(t)$ on $[0, T]$. Suppose we have the time-limit and the bandwidth limit $\E[\abs{X(f)}^2] = 0$ $f \notin [-W, W]$.
+
+\begin{proposition}
+    \textbf{Fact:} for a time-limited and (almost) bandwidth-limited signal, there exist $N = 2WT$ orthonormal basis functions $\phi_1, \dots, \phi_N$ such that any signal on $[0, T]$ can be represented as a linear combination of these basis functions.
+\end{proposition}
+
+Because the process is white, our projections onto the basis functions are independent, so we have $N$ independent Gaussian channels with capacity $c = \frac{1}{2} \log \left(1 + \frac{P}{N_0}\right)$ each, hence a total capacity of
+\[C = w\log\left(1 + \frac{P}{N_0 w}\right) \overset{w \to \infty}{\longrightarrow} \frac{P}{N_0} \]
 \end{document}
+

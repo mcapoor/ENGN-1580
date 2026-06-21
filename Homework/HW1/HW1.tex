@@ -1,0 +1,227 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{letterpaper, margin=0.25in}
+\usepackage{graphicx} 
+\usepackage{multicol}
+\usepackage{parskip}
+\usepackage{booktabs}
+\usepackage{array} 
+\usepackage{paralist} 
+\usepackage{verbatim}
+\usepackage{sectsty}
+\usepackage[shortlabels]{enumitem}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{empheq}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{tikz-cd}
+\usepackage{circuitikz}
+\usepackage{multirow}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{intersections, decorations.markings}
+\tikzset{
+    marking along/.style n args={2}{
+        decoration={
+                markings, 
+                mark=at position #1 with {\arrow{#2}}
+        },
+        postaction={decorate}
+        },
+    marking along/.default={0.5}{>}
+    wavy/.style={
+        decorate,decoration={coil,aspect=0}
+     },
+    two marks/.style n args={1}{
+        decoration={
+            markings,
+            mark=at position 0.25 with {\arrow{#1}},
+            mark=at position 0.75 with {\arrow{#1}}
+         },
+         postaction={decorate}
+    }
+    two marks/.default={>}
+}
+
+\colorlet{mygreen}{green!50!teal}
+\colorlet{darkblue}{blue!60!black}
+
+\newcommand{\ans}[1]{\boxed{\text{#1}}}
+\newcommand{\vecs}[1]{\langle #1\rangle}
+\renewcommand{\hat}[1]{\widehat{#1}}
+
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+
+\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\qed}{\quad \blacksquare}
+
+\newcommand{\brak}[1]{\left\langle #1 \right\rangle}
+\newcommand{\bra}[1]{\left\langle #1 \right\vert}
+\newcommand{\ket}[1]{\left\vert #1 \right\rangle}
+
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\mfX}{\mathfrak{X}}
+\newcommand{\ep}{\varepsilon}
+
+\newcommand{\Ec}{\mathcal{E}}
+\newcommand{\Nc}{\mathcal{N}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\B}{\mathcal{B}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\X}{\chi}
+\renewcommand{\L}{\mathcal{L}}
+
+\newcommand{\sub}{\subseteq}
+\newcommand{\st}{\text{ s.t. }}
+\newcommand{\card}{\text{card }}
+\renewcommand{\div}{\vspace*{10pt}\hrule\vspace*{10pt}}
+\newcommand{\surj}{\twoheadrightarrow}
+\newcommand{\inj}{\hookrightarrow}
+\newcommand{\biject}{\hookrightarrow \hspace{-8pt} \rightarrow}
+\renewcommand{\bar}[1]{\overline{#1}}
+\newcommand{\overcirc}[1]{\overset{\circ}{#1}}
+\newcommand{\diam}{\text{diam }}
+\newcommand{\iid}{\overset{	ext{iid}}{\sim}}
+
+\renewcommand{\Re}{\text{Re}\,}
+\renewcommand{\Im}{\text{Im}\,}
+\newcommand{\Var}{\text{Var}\,}
+\newcommand{\Cov}{\text{Cov}\,}
+
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+
+\newcommand{\sign}{\text{sign}\,}
+
+\newcommand*{\tbf}[1]{\if_mmode\mathbf{#1}\else\textbf{#1}\fi}
+
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable, skins}
+\tcbset{enhanced}
+\newenvironment*{tbox}[2][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable,
+        title={#2}
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{exercise}[1][red]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+\newenvironment*{proof}[1][blue]{
+\begin{tcolorbox}[
+    parbox=false,
+    colback=#1!5!white,
+    colframe=#1!75!black,
+    breakable
+]}
+{\end{tcolorbox}}
+\newenvironment*{proposition}[1][gray]{
+    \begin{tcolorbox}[
+        parbox=false,
+        colback=#1!5!white,
+        colframe=#1!75!black,
+        breakable
+    ]}
+    {\end{tcolorbox}}
+
+
+\begin{document}
+\begin{multicols}{2}
+    \begin{flushleft}
+        \parbox{0.5\textwidth}{\Large ENGN 1580 - Problem Set 1}
+    \end{flushleft}
+    \begin{flushright}
+        \tbf{Milan Capoor}
+    \end{flushright}
+\end{multicols}
+\div
+
+\tbf{1. When Is a Carrier a Good Carrier?:} Given an information signal $m(t)$ you want to generate
+\[r(t) = Am(t) \cos(2\pi f_ct)\]
+However, life (your professor) is unkind and you're only allowed to use $\cos^3(2\pi f_ct)$ as your carrier signal. That is, the first stage of your transmitter block diagram with $m(t)$ as the input
+is going to be a multiplication by $\cos^3(2\pi f_ct)$ (instead of the usual sane $\cos(2\pi f_ct))$.
+\begin{enumerate}[a.]
+    \item Assume you can build any linear time invariant (LTI) filter you'd like. Can you filter the output of the multiplier to obtain the desired signal? If so, what is the filter
+    characteristic?
+    \item Suppose $\cos^2(2\pi f_ct)$ is the carrier. Repeat the previous part.
+    \item Suppose we generalize the carrier to be $\cos^n(2\pi f_ct)$ for $n > 2$. When can you generate the desired $r(t)$ using LTI filters? 
+\end{enumerate}
+
+\pagebreak 
+\tbf{2. Simple Envelope Detection:} Consider the following AM signal
+\[s(t) = A_c[1 + \lambda  \cos(2\pi f_mt)]\cos(2\pi f_ct)\]
+The modulation factor is $\lambda  = 1$ and $f_c \gg f_m$. The AM signal is applied to an ideal envelope detector producing the output $v(t)$.
+\begin{enumerate}
+    \item Why did we stipulate $f_c \gg f_m$?
+    \item Find $v(t)$ and $V (f)$.
+    
+    \color{red}
+    \begin{align*}
+        v(t) &= \abs{A_c \cos (2\pi f_c t) + A_c \cos(2\pi f_mt) \cos(2\pi f_ct)}\\
+        V(f) &= \int \abs{A_c \cos (2\pi f_c t) + A_c \cos(2\pi f_mt) \cos(2\pi f_ct)} e^{-j\; 2\pi ft}\; dt\\
+        &= \int A_c \abs{\cos (2\pi f_c t)} e^{-j\; 2\pi ft}\; dt + \int A_c \abs{\cos(2\pi f_mt) \cos(2\pi f_ct)} e^{-j\; 2\pi ft}\; dt\\ 
+        &= \frac{A_c}{2} [\delta(f - f_c) + \delta(f + f_c)] + \int A_c \abs{\frac{1}{2}[\cos(2\pi f_m t + 2\pi f_c t) + \cos(2\pi f_m t - 2\pi f_c t)]} e^{-j\; 2\pi ft}\; dt\\
+        &= \frac{A_c}{2} [\delta(f - f_c) + \delta(f + f_c)]\\ 
+            &\qquad + \frac{A_c}{4} [\delta(f - (f_c + f_m)) + \delta(f + (f_c + f_m)) + \delta(f - (f_c - f_m)) + \delta(f + (f_c - f_m))]\\
+    \end{align*}
+    \color{black}
+
+    \item How does your answer change (qualitatively) if $\lambda  > 1$?
+\end{enumerate}
+
+\pagebreak
+\tbf{3. Bandwidth Efficiency:} A normalized transmission bandwidth is defined by 
+\[\eta = \frac{B_T}{W}\] 
+where $B_T$ is the transmission bandwidth of the modulated signal, and $W$ is the message bandwidth. Compute the values of $\eta$ for modulation schemes of AM, DSB-SC and SSB.
+
+\pagebreak
+\tbf{4. Cora and Carrier Squirrel:}
+Cora the famous Brown University Communications Engineer has been hired by Arboretums 'R Us to build an AM communications system for their small forest. Being somewhat eccentric, they have designed a signature component,\emph{ the squirrel carrier signal generator,}
+which consists of a tiny fast squirrel sitting on a heated switch. When the switch gets hot, the squirrel jumps which breaks the switch connection and shuts off the heater. When the squirrel lands, it turns the heater back on and the process begins again. If a given squirrel's
+evil twin is put in an identical box, it out of sheer meaness gets out of phase (it jumps up just before the other squirrel lands on its switch and comes down just before the other squirrel jumps up).
+A complete up down cycle for each squirrel lasts $T = 1/f_c$ seconds. Since the switch is either closed or open, the carrier generator output is essentially binary and takes on values $\pm 1$. The rest of the system components are more standard (electronic multipliers, LTI filters,
+etc.).
+For mathematical convenience, we will define $c(x) = \text{sgn} (\cos(x))$ and $s(x) = \text{sgn} (\sin(x))$
+with $\text{sgn} (0) = 1$.
+
+\begin{enumerate}
+\item Carefully sketch $c(2\pi f_ct)$ and $s(2\pi f_ct)$ as a function of t for $f_c = 10$.
+
+\item Suppose Cora has program material $m(t)$ and uses it to modulate $c(2\pi f_ct)$ where $f_c = 10$. Carefully sketch the signal $r(t) = m(t)c(2\pi f_ct)$ for some $m(t)$ of your choosing which varies slowly as compared to $c(2\pi f_ct)$.
+
+\item Now suppose we form $r(t) = m(t)c(2\pi f_ct)$ Assume $c(2\pi f_ct)$ is available at the receiver (a synchronous squirrel system!). Show EXACTLY how $m(t)$ can be recovered at the receiver. Or if it cannot, show why not. As compared to modulation/demodulation using sinusoids, explain why a low pass filter is necessary (or unnecessary) to recover $m(t)$.
+
+\item Of course, any good arboretum needs at least two independent channels -- one for the trees and the other for the human visitors – but the squirrel modulator only comes
+in one frequency. So, suppose Cora gets normal – evil twin squirrel pairs and forms
+\[r(t) = m_1(t)c(2\pi f_ct) + m_2(t)s(2\pi f_ct) \]
+where both $m_1(t)$ and $m_2(t)$ vary slowly as
+compared to $c(2\pi f_ct)$ and $s(2\pi f_ct)$. Assuming both $c(2\pi f_ct)$ and $s(2\pi f_ct)$ are available
+at the receiver (evil synchronous squirrels too!), show EXACTLY how $m_1(t)$ and $m_2(t)$
+can be recovered. Or if they cannot, show why not.
+Explain why a low pass filter is necessary (or unnecessary) to recover the $m_i(t)$.
+\item Suppose $r(t) = (1 + m(t))c(2\pi f_ct)$ where $|m(t)| \leq 1$. To recover $m(t)$ Cora full wave rectifies $r(t)$ to obtain $z(t) = |r(t)|$ and then applies an operator $T []$ to $z(t)$. What operator $T [\cdot]$ should Cora use to recover $m(t)$? Is this operator linear?
+\end{enumerate}
+\end{document}
